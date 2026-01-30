@@ -39,7 +39,14 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["apps/tooly_rent-e2e/**/*"]
+      "exclude": [
+        "apps/tooly_rent-e2e/**/*",
+        "auth-service-e2e/**/*",
+        "apps/backend/auth-service-e2e/**/*",
+        "apps/backend-e2e/**/*",
+        "apps/user-service-e2e/**/*",
+        "apps/api-gateway-e2e/**/*"
+      ]
     }
   ]
 }
