@@ -1,10 +1,31 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { AuthController } from './app.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { PrismaModule } from '../infrastructure/prisma/prisma.module';
+import { AuthService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { RMQModule } from 'nestjs-rmq';
+import { getRMQConfig } from '../config/rmq.config';
+import { UserRepository } from '../infrastructure/repositories/user.repository';
+import { USER_REPOSITORY } from '../domain/repositories/user.repository.interface';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    JwtModule.register({}),
+    PrismaModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: 'envs/.auth-service.env',
+    }),
+    RMQModule.forRootAsync(getRMQConfig()),
+  ],
+  controllers: [AuthController],
+  providers: [
+    AuthService,
+    {
+      provide: USER_REPOSITORY,
+      useClass: UserRepository,
+    },
+  ],
 })
-export class AppModule {}
+export class AuthModule {}
