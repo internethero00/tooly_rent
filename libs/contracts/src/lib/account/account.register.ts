@@ -15,8 +15,6 @@ export namespace AccountRegister {
     displayName?: string;
   }
   export class Response {
-    access_token?: string;
-    refresh_token?: string;
     id?: string;
     email?: string;
   }

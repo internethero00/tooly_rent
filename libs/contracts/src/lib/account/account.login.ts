@@ -16,5 +16,6 @@ export namespace AccountLogin {
     refresh_token?: string;
     id?: string;
     email?: string;
+    role?: string;
   }
 }
