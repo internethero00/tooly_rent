@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { AuthService } from '../../app/auth/auth.service';
 import { Message, RMQMessage, RMQRoute, RMQValidate } from 'nestjs-rmq';
-import { AccountRegister } from '@tooly-rent/contracts';
+import { AccountLogin, AccountRegister } from '@tooly-rent/contracts';
 import { LoggerService } from '@tooly-rent/common';
 
 @Controller()
@@ -27,6 +27,21 @@ export class AuthController {
       this.logger.error(`[${requestId}][Auth Service] Registration failed for: ${dto.email}`);
       throw error;
     }
+  }
 
+  @RMQRoute(AccountLogin.topic)
+  @RMQValidate()
+  async login(dto: AccountLogin.Request, @RMQMessage msg: Message): Promise<AccountLogin.Response> {
+    const requestId = msg.properties.headers?.requestId || 'unknown';
+    this.logger.log(`[${requestId}][Auth Service] Login request for: ${dto.email}`);
+
+    try {
+      const result = await this.authService.login(dto);
+      this.logger.log(`[${requestId}][Auth Service] Login successful: ${result.id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`[${requestId}][Auth Service] Login failed:`, error.message);
+      throw error;
+    }
   }
 }
