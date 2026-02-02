@@ -1,4 +1,5 @@
 import { UserEntity } from '../entities/user.entity';
+import { UserRole } from '@prisma/client';
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY')
 
@@ -24,5 +25,5 @@ export interface CreateUserData {
 export interface UpdateUserData {
   email?: string;
   passwordHash?: string;
-  role?: string;
+  role?: UserRole;
 }

@@ -3,7 +3,8 @@ const { join } = require('path');
 
 module.exports = {
   output: {
-    path: join(__dirname, '../../../dist/apps/backend/auth-service'),
+    path: join(__dirname, '../../dist/apps/auth-service'),
+    filename: 'main.js',
     clean: true,
     ...(process.env.NODE_ENV !== 'production' && {
       devtoolModuleFilenameTemplate: '[absolute-resource-path]',
@@ -14,8 +15,7 @@ module.exports = {
       target: 'node',
       compiler: 'tsc',
       main: './src/main.ts',
-      tsConfig: './tsconfig.controllers.json',
-      assets: ['./src/assets'],
+      tsConfig: './tsconfig.app.json',
       optimization: false,
       outputHashing: 'none',
       generatePackageJson: true,

@@ -6,6 +6,7 @@ import {
 import { UserEntity } from '../../domain/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -15,7 +16,7 @@ export class UserRepository implements IUserRepository {
       data: {
         email: data.email,
         passwordHash: data.passwordHash,
-        role: data.role || 'USER',
+        role: UserRole.USER,
       },
     });
     return this.mapToEntity(user);
@@ -28,21 +29,21 @@ export class UserRepository implements IUserRepository {
   }
 
   async existsByEmail(email: string): Promise<boolean> {
-    const user = await this.prismaService.user.findOne({
+    const user = await this.prismaService.user.findUnique({
       where: { email },
     })
     return !!user;
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const user = await this.prismaService.user.findOne({
+    const user = await this.prismaService.user.findUnique({
       where: { email },
     })
     return user ? this.mapToEntity(user) : null;
   }
 
   async findById(id: string): Promise<UserEntity | null> {
-    const user = await this.prismaService.user.findOne({
+    const user = await this.prismaService.user.findUnique({
       where: { id },
     })
     return user ? this.mapToEntity(user) : null;

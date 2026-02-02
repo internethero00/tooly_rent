@@ -10,6 +10,17 @@ services:
       - "5433:5432"
     volumes:
       - tooly_auth_pg:/var/lib/postgresql/data
-
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: tooly_rent_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "1:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 volumes:
   tooly_auth_pg:
+  rabbitmq_data:

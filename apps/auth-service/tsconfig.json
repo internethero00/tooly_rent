@@ -11,6 +11,12 @@
     }
   ],
   "compilerOptions": {
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@generated/prisma": ["src/generated/prisma"],
+      "@tooly-rent/contracts": ["../../libs/contracts/src/index.ts"],
+      "@tooly-rent/common": ["../../libs/common/src/index.ts"]
+    }
   }
 }
