@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { AuthService } from '../../app/auth/auth.service';
 import { Message, RMQMessage, RMQRoute, RMQValidate } from 'nestjs-rmq';
-import { AccountLogin, AccountRegister } from '@tooly-rent/contracts';
+import { AccountLogin, AccountRefreshToken, AccountRegister } from '@tooly-rent/contracts';
 import { LoggerService } from '@tooly-rent/common';
 
 @Controller()
@@ -20,6 +20,7 @@ export class AuthController {
 
     try {
       const result = await this.authService.register(dto);
+
       this.logger.log(`[${requestId}][Auth Service] User created: ${result.id}`);
       return result;
     }
@@ -42,6 +43,24 @@ export class AuthController {
     } catch (error) {
       this.logger.error(`[${requestId}][Auth Service] Login failed:`, error.message);
       throw error;
+    }
+  }
+
+  @RMQRoute(AccountRefreshToken.topic)
+  @RMQValidate()
+  async refresh(dto: AccountRefreshToken.Request, @RMQMessage msg: Message):
+
+    Promise<AccountRefreshToken.Response> {
+    const requestId = msg.properties.headers?.requestId || 'unknown';
+    this.logger.log(`[${requestId}][Auth Service] Refresh request for: ${requestId}`);
+    try {
+      const tokens = await this.authService.verifyToken(dto.refresh_token);
+      this.logger.log(`[${requestId}][Auth Service] Refresh successful`);
+      return tokens
+    }
+    catch (e) {
+      this.logger.error(`[${requestId}][Auth Service] Refresh failed:`, e.message);
+      throw e;
     }
   }
 }

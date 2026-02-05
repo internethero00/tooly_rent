@@ -4,10 +4,19 @@ import {
   USER_REPOSITORY,
 } from '../../domain/repositories/user.repository.interface';
 import { JwtService } from '@nestjs/jwt';
-import { AccountLogin, AccountRegister } from '@tooly-rent/contracts';
+import {
+  AccountLogin,
+  AccountRefreshToken,
+  AccountRegister,
+} from '@tooly-rent/contracts';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 
+export type PayloadType = {
+  sub: string;
+  email: string;
+  role: string;
+}
 @Injectable()
 export class AuthService {
   constructor(
@@ -30,9 +39,13 @@ export class AuthService {
       passwordHash: hashPassword,
       role: 'USER',
     });
+    const tokens = this.generateTokens(user.id, user.email, user.role);
     return {
       id: user.id,
       email: user.email,
+      role: user.role,
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
     };
   }
   async login(dto: AccountLogin.Request): Promise<AccountLogin.Response> {
@@ -55,17 +68,17 @@ export class AuthService {
   }
 
   async verifyToken(token: string) {
-      const payload = await this.jwtService.verify(token, {
-        secret: this.configService.getOrThrow('JWT_ACCESS_SECRET'),
+      const payload: PayloadType = await this.jwtService.verify(token, {
+        secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
       });
       const user = await this.userRepository.findById(payload.sub);
       if (!user) {
         throw new UnauthorizedException('User not found');
       }
-      return payload;
+      return this.generateTokens(user.id, user.email, user.role);
   }
 
-  private generateTokens(userId: string, email: string, role: string) {
+  private generateTokens(userId: string, email: string, role: string): AccountRefreshToken.Response {
     const payload = { sub: userId, email, role };
     const access_token = this.jwtService.sign(payload, {
       secret: this.configService.getOrThrow('JWT_ACCESS_SECRET'),

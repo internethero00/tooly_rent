@@ -5,7 +5,7 @@ import { getRMQConfig } from './configs/rmq.config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { getJWTConfig } from './configs/jwt.config';
-import { AuthController } from './controllers/auth.controller';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
@@ -19,8 +19,7 @@ import { AuthController } from './controllers/auth.controller';
     ),
     JwtModule.registerAsync(getJWTConfig()),
     PassportModule,
+    AuthModule
   ],
-  controllers: [AuthController],
-  providers: [],
 })
 export class AppModule {}
