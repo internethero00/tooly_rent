@@ -1,5 +1,4 @@
-import { AccountStatus, UserEntity } from '../entities/user.entity';
-import { UserRole } from '@prisma/client';
+import { AccountStatus, UserEntity, UserRole } from '../entities/user.entity';
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY')
 

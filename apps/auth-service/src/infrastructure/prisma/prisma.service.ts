@@ -1,11 +1,11 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
 dotenv.config({ path: join(process.cwd(), 'envs/.auth-service.env') });
 console.log('DATABASE_URL=', process.env.DATABASE_URL);
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@generated/prisma';
 
 
 function mustGetEnv(name: string): string {
