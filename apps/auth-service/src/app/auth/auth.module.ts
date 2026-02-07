@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
+import { DeletionSaga } from '../sagas/deletion.saga';
 
 @Module({
   imports: [
@@ -17,6 +18,6 @@ import { USER_REPOSITORY } from '../../domain/repositories/user.repository.inter
       useClass: UserRepository,
     },
   ],
-  exports: [AuthService],
+  exports: [AuthService, DeletionSaga],
 })
 export class AuthModule {}
