@@ -53,6 +53,9 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    if (user.isPendingDeletion) {
+      throw new UnauthorizedException('Account is being deleted');
+    }
     const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials');
