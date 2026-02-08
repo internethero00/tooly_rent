@@ -19,7 +19,7 @@ import { AccountRefreshToken } from '@tooly-rent/contracts';
 
 @Controller('auth')
 export class AuthController {
-  private readonly logger = new LoggerService('AuthController');
+  private readonly logger = new LoggerService(AuthController.name);
 
   constructor(
     private readonly authService: AuthService,
