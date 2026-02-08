@@ -10,6 +10,17 @@ services:
       - "5433:5432"
     volumes:
       - tooly_auth_pg:/var/lib/postgresql/data
+  tooly-user-db:
+    image: postgres:16
+    container_name: tooly-user-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tooly_rent_user
+    ports:
+      - "5434:5432"
+    volumes:
+      - tooly_user_pg:/var/lib/postgresql/data
   rabbitmq:
     image: rabbitmq:3-management
     container_name: tooly_rent_rabbitmq
@@ -23,4 +34,5 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
 volumes:
   tooly_auth_pg:
+  tooly_user_pg:
   rabbitmq_data:

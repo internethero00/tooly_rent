@@ -42,3 +42,4 @@ Thumbs.db
 .nx/cache
 .nx/workspace-data
 /apps/auth-service/src/generated/
+/apps/user-service/src/generated/
