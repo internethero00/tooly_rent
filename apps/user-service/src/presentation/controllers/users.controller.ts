@@ -3,7 +3,7 @@ import { UsersService } from '../../app/users/users.service';
 import { Message, RMQMessage, RMQRoute, RMQValidate } from 'nestjs-rmq';
 import {
   ACCOUNT_DELETION_STARTED,
-  AccountUserDeletionStarted,
+  AccountUserDeletionStarted, createUser,
   getUserById,
 } from '@tooly-rent/contracts';
 import { LoggerService } from '@tooly-rent/common';
@@ -14,22 +14,31 @@ export class UsersController {
 
   constructor(private readonly usersService: UsersService) {}
 
+  @RMQRoute(createUser.topic)
+  @RMQValidate()
+  async createUser(dto: createUser.Request, @RMQMessage msg: Message) {
+    const requestId = msg.properties.headers?.requestId || 'unknown';
+    this.logger.log(`[${requestId}][User Service] creating user by id: ${dto.userId}`);
+
+    try {
+      await this.usersService.createUser(dto.userId)
+    } catch (e) {
+      this.logger.error(`[${requestId}][User Service] creating user failed:`, e.message );
+      throw e;
+    }
+  }
+
   @RMQRoute(ACCOUNT_DELETION_STARTED)
   async deleteUserById(
     event: AccountUserDeletionStarted.Event,
     @RMQMessage msg: Message,
   ) {
     const requestId = msg.properties.headers?.requestId || 'unknown';
-    this.logger.log(
-      `[${requestId}][User Service] deleting user by id: ${event.userId}`,
-    );
+    this.logger.log(`[${requestId}][User Service] deleting user by id: ${event.userId}`);
     try {
       await this.usersService.deleteUserById(event);
     } catch (e) {
-      this.logger.error(
-        `[${requestId}][User Service] deleting failed:`,
-        e.message,
-      );
+      this.logger.error(`[${requestId}][User Service] deleting failed:`, e.message);
       throw e;
     }
   }
@@ -47,10 +56,7 @@ export class UsersController {
     try {
       return await this.usersService.getUserById(dto);
     } catch (e) {
-      this.logger.error(
-        `[${requestId}][User Service] getting user failed:`,
-        e.message,
-      );
+      this.logger.error(`[${requestId}][User Service] getting user failed:`, e.message);
       throw e;
     }
   }

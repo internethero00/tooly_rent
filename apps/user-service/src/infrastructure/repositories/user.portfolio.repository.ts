@@ -10,6 +10,15 @@ import { PrismaService } from '../prisma/prisma.service';
 export class UserPortfolioRepository implements IUserProfileRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
+  async createUser(userId: string): Promise<UserProfileEntity> {
+    const user = await this.prismaService.userProfile.create({
+      data: {
+        userId,
+      }
+    })
+    return user ? this.mapToEntity(user) : null;
+  }
+
   async getProfileById(userId: string): Promise<UserProfileEntity | null> {
     const user = await this.prismaService.userProfile.findUnique({
       where: { userId },

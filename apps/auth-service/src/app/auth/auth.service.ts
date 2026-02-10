@@ -8,10 +8,12 @@ import {
   AccountLogin,
   AccountRefreshToken,
   AccountRegister,
+  createUser,
 } from '@tooly-rent/contracts';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { UserEntity } from '../../domain/entities/user.entity';
+import { RMQService } from 'nestjs-rmq';
 
 export type PayloadType = {
   sub: string;
@@ -25,6 +27,7 @@ export class AuthService {
     private readonly userRepository: IUserRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly rmqService: RMQService,
   ) {}
   async register(
     dto: AccountRegister.Request,
@@ -39,6 +42,9 @@ export class AuthService {
       email: dto.email,
       passwordHash: hashPassword,
       role: 'USER',
+    });
+    await this.rmqService.notify<createUser.Request>(createUser.topic, {
+      userId: user.id,
     });
     const tokens = this.generateTokens(user.id, user.email, user.role);
     return {

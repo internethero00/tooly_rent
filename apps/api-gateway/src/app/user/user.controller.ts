@@ -88,5 +88,7 @@ export class UserController {
   async updateUserById(
     @Param('id') userId: string,
     @Body() dto: UpdateUserDto,
-  ) {}
+  ){
+
+  }
 }

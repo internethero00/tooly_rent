@@ -13,14 +13,19 @@ import {
   getUserById,
   AccountGetUserById,
 } from '@tooly-rent/contracts';
+import { UserProfileEntity } from '../../domain/entities/user.profile.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject(USER_PROFILE_REPOSITORY)
     private readonly userProfileRepository: IUserProfileRepository,
-    private readonly rmqService: RMQService
+    private readonly rmqService: RMQService,
   ) {}
+
+  async createUser(userId: string): Promise<UserProfileEntity> {
+    return await this.userProfileRepository.createUser(userId);
+  }
 
   async deleteUserById({ userId, sagaId }: AccountUserDeletionStarted.Event) {
     const user = await this.userProfileRepository.getProfileById(userId);
@@ -53,12 +58,12 @@ export class UsersService {
     const userAuthService = await this.rmqService.send<
       AccountGetUserById.Request,
       AccountGetUserById.Response
-    >(AccountGetUserById.topic, {userId});
+    >(AccountGetUserById.topic, { userId });
     return {
       ...userAuthService,
       firstName: userProfile.firstName,
       lastName: userProfile.lastName,
-      avatar: userProfile.avatar
-    }
+      avatar: userProfile.avatar,
+    };
   }
 }

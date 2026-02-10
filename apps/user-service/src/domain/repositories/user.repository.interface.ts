@@ -10,6 +10,7 @@ export interface IUserProfileRepository {
     userId: string,
     data: UpdateUserData,
   ): Promise<UserProfileEntity>;
+  createUser(userId: string): Promise<UserProfileEntity>;
 }
 
 export interface UpdateUserData {
