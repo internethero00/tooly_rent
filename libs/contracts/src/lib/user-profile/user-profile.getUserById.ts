@@ -1,3 +1,5 @@
+import { UserRole } from '../account/account.get-user-by-id';
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace getUserById {
   export const topic = 'user-profile.get-by-user-id.query';
@@ -13,11 +15,6 @@ export namespace getUserById {
     firstName?: string | null;
     lastName?: string | null;
     avatar?: string | null;
-    isActive?: boolean;
   }
 }
 
-export enum UserRole {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-}

@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   ForbiddenException,
@@ -13,7 +14,7 @@ import { UpdateUserDto } from './dto/update.user.dto';
 import { Authorization } from '../decorators/auth.decorator';
 import { UserRole } from '../decorators/roles.decorator';
 import { Request } from 'express';
-import {AccountDeleteUser, getUserById } from '@tooly-rent/contracts';
+import { AccountDeleteUser, getUserById } from '@tooly-rent/contracts';
 import { AuthenticatedRequest } from '../types/authenticatedRequest.type';
 
 @Controller('users')
@@ -84,5 +85,8 @@ export class UserController {
   }
 
   @Put(':id')
-  async updateUserById(@Param('id') id: string, dto: UpdateUserDto) {}
+  async updateUserById(
+    @Param('id') userId: string,
+    @Body() dto: UpdateUserDto,
+  ) {}
 }

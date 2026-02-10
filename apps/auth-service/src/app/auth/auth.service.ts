@@ -11,6 +11,7 @@ import {
 } from '@tooly-rent/contracts';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
+import { UserEntity } from '../../domain/entities/user.entity';
 
 export type PayloadType = {
   sub: string;
@@ -94,5 +95,9 @@ export class AuthService {
         this.configService.getOrThrow('JWT_REFRESH_EXPIRATION') || '7d',
     });
     return { access_token, refresh_token };
+  }
+
+  async findById(userId: string): Promise<UserEntity> {
+    return  await this.userRepository.findById(userId);
   }
 }
