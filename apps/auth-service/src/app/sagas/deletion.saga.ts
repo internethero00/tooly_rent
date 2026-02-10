@@ -43,7 +43,6 @@ export class DeletionSaga {
       ACCOUNT_DELETION_STARTED,
       {
         userId: userId,
-        email: user.email,
         sagaId,
       },
     );

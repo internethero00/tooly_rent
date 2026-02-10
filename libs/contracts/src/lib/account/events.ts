@@ -6,7 +6,6 @@ export const USER_PROFILE_DELETION_FAILED = 'user-profile.deletion-failed.event'
 export namespace AccountUserDeletionStarted {
   export class Event {
     userId?: string;
-    email?: string;
     sagaId?: string;
   }
 }

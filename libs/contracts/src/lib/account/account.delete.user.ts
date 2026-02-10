@@ -4,10 +4,10 @@ export namespace AccountDeleteUser {
 
   export class Request {
     userId?: string;
-    initiatedBy?: string;
   }
 
   export class Response {
     sagaId?: string;
+    status?: 'pending';
   }
 }
