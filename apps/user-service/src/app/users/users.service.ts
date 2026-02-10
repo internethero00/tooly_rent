@@ -12,6 +12,7 @@ import {
   UserProfileDeletionFailed,
   getUserById,
   AccountGetUserById,
+  updateUserById,
 } from '@tooly-rent/contracts';
 import { UserProfileEntity } from '../../domain/entities/user.profile.entity';
 
@@ -22,6 +23,12 @@ export class UsersService {
     private readonly userProfileRepository: IUserProfileRepository,
     private readonly rmqService: RMQService,
   ) {}
+
+  async updateUserById(
+    {userId, ...data}: updateUserById.Request,
+  ): Promise<UserProfileEntity> {
+    return await this.userProfileRepository.updateProfileById(userId, data)
+  }
 
   async createUser(userId: string): Promise<UserProfileEntity> {
     return await this.userProfileRepository.createUser(userId);

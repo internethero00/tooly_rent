@@ -3,8 +3,10 @@ import { UsersService } from '../../app/users/users.service';
 import { Message, RMQMessage, RMQRoute, RMQValidate } from 'nestjs-rmq';
 import {
   ACCOUNT_DELETION_STARTED,
-  AccountUserDeletionStarted, createUser,
+  AccountUserDeletionStarted,
+  createUser,
   getUserById,
+  updateUserById,
 } from '@tooly-rent/contracts';
 import { LoggerService } from '@tooly-rent/common';
 
@@ -21,7 +23,7 @@ export class UsersController {
     this.logger.log(`[${requestId}][User Service] creating user by id: ${dto.userId}`);
 
     try {
-      await this.usersService.createUser(dto.userId)
+      await this.usersService.createUser(dto.userId);
     } catch (e) {
       this.logger.error(`[${requestId}][User Service] creating user failed:`, e.message );
       throw e;
@@ -34,7 +36,9 @@ export class UsersController {
     @RMQMessage msg: Message,
   ) {
     const requestId = msg.properties.headers?.requestId || 'unknown';
-    this.logger.log(`[${requestId}][User Service] deleting user by id: ${event.userId}`);
+    this.logger.log(
+      `[${requestId}][User Service] deleting user by id: ${event.userId}`,
+    );
     try {
       await this.usersService.deleteUserById(event);
     } catch (e) {
@@ -50,13 +54,30 @@ export class UsersController {
     @RMQMessage msg: Message,
   ): Promise<getUserById.Response> {
     const requestId = msg.properties.headers?.requestId || 'unknown';
-    this.logger.log(
-      `[${requestId}][User Service] getting user by id: ${dto.userId}`,
-    );
+    this.logger.log(`[${requestId}][User Service] getting user by id: ${dto.userId}`);
     try {
       return await this.usersService.getUserById(dto);
     } catch (e) {
-      this.logger.error(`[${requestId}][User Service] getting user failed:`, e.message);
+      this.logger.error(`[${requestId}][User Service] getting user failed:`, e.message );
+      throw e;
+    }
+  }
+
+  @RMQRoute(updateUserById.topic)
+  @RMQValidate()
+  async updateUserById(
+    dto: updateUserById.Request,
+    @RMQMessage msg: Message,
+  ): Promise<updateUserById.Response> {
+    const requestId = msg.properties.headers?.requestId || 'unknown';
+    this.logger.log(`[${requestId}][User Service] updating user by id: ${dto.userId}`);
+    try {
+      return await this.usersService.updateUserById(dto);
+    } catch (e) {
+      this.logger.error(
+        `[${requestId}][User Service] updating user failed:`,
+        e.message,
+      );
       throw e;
     }
   }

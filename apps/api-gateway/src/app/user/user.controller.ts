@@ -14,7 +14,11 @@ import { UpdateUserDto } from './dto/update.user.dto';
 import { Authorization } from '../decorators/auth.decorator';
 import { UserRole } from '../decorators/roles.decorator';
 import { Request } from 'express';
-import { AccountDeleteUser, getUserById } from '@tooly-rent/contracts';
+import {
+  AccountDeleteUser,
+  getUserById,
+  updateUserById,
+} from '@tooly-rent/contracts';
 import { AuthenticatedRequest } from '../types/authenticatedRequest.type';
 
 @Controller('users')
@@ -84,11 +88,33 @@ export class UserController {
     }
   }
 
+  @Authorization(UserRole.USER)
   @Put(':id')
   async updateUserById(
     @Param('id') userId: string,
-    @Body() dto: UpdateUserDto,
+    @Req() req: Request,
+    @Body() dto: UpdateUserDto
   ){
-
+    const userInfo: AuthenticatedRequest = req['user'];
+    const requestId = req['requestId'] as string;
+    const timestamp = new Date().toISOString();
+    this.logger.log(`Updating user with id ${userId}`, requestId);
+    if (userInfo.user.role === UserRole.USER && userInfo.user.sub !== userId) {
+      throw new ForbiddenException('You can only access your own profile');
+    }
+    let result: updateUserById.Response;
+    try {
+      result = await this.userService.updateUserById(
+        { userId, ...dto },
+        requestId,
+        timestamp,
+      );
+      this.logger.log(`Updating user with id successful`, requestId);
+      return result;
+    }
+    catch(e) {
+      this.logger.error(`Updating user with id: ${e.message}`, e.stack, requestId );
+      throw e;
+    }
   }
 }
