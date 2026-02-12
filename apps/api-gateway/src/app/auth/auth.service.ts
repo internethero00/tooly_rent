@@ -1,5 +1,9 @@
 import { RMQService } from 'nestjs-rmq';
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import {
   AccountLogin,
   AccountRefreshToken,
@@ -11,7 +15,9 @@ export class AuthService {
   constructor(private readonly rmqService: RMQService) {}
 
   async register(
-    dto: AccountRegister.Request, requestId: string, timestamp: string
+    dto: AccountRegister.Request,
+    requestId: string,
+    timestamp: string,
   ): Promise<AccountRegister.Response> {
     return this.rmqService.send<
       AccountRegister.Request,
@@ -25,23 +31,27 @@ export class AuthService {
     });
   }
 
-  async login(
-    dto: AccountLogin.Request, requestId: string, timestamp: string
-  ): Promise<AccountLogin.Response> {
-    return this.rmqService.send<
-      AccountLogin.Request,
-      AccountLogin.Response
-    >(AccountLogin.topic, dto, {
-      headers: {
-        requestId,
-        timestamp,
-        service: 'api-gateway',
-      },
-    });
+  async login(dto: AccountLogin.Request, requestId: string, timestamp: string) {
+    try {
+      return await this.rmqService.send(AccountLogin.topic, dto, {
+        headers: { requestId, timestamp, service: 'api-gateway' },
+      });
+    } catch (err) {
+      const msg = err?.message ?? 'Auth service error';
+
+      if (msg === 'Invalid credentials' || msg === 'Account is being deleted') {
+        throw new UnauthorizedException(msg);
+      }
+
+      throw new InternalServerErrorException('Auth service error');
+    }
+
   }
 
   async refresh(
-    token: AccountRefreshToken.Request, requestId: string, timestamp: string
+    token: AccountRefreshToken.Request,
+    requestId: string,
+    timestamp: string,
   ): Promise<AccountRefreshToken.Response> {
     return this.rmqService.send<
       AccountRefreshToken.Request,

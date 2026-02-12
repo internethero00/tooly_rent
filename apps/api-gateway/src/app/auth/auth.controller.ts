@@ -77,6 +77,7 @@ export class AuthController {
       result = await this.authService.login(dto, requestId, timestamp);
       this.logger.log(`Login successful for user: ${result.id}`, requestId);
     } catch (e) {
+      console.log(e);
       this.logger.error(`Login failed: ${e.message}`, e.stack, requestId);
       throw e;
     }
