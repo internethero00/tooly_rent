@@ -20,7 +20,6 @@ import {
   updateUserById,
 } from '@tooly-rent/contracts';
 import {
-  AuthenticatedRequest,
   AuthUser,
 } from '../types/authenticatedRequest.type';
 
@@ -33,11 +32,11 @@ export class UserController {
   @Authorization(UserRole.USER, UserRole.ADMIN)
   @Delete(':id')
   async deleteUserById(@Param('id') userId: string, @Req() req: Request) {
-    const userInfo: AuthenticatedRequest = req['user'];
+    const userInfo: AuthUser = req['user'];
     const requestId = req['requestId'] as string;
     const timestamp = new Date().toISOString();
     this.logger.log(`Deleting user with id ${userId}`, requestId);
-    if (userInfo.user.role === UserRole.USER && userInfo.user.sub !== userId) {
+    if (userInfo.role === UserRole.USER && userInfo.sub !== userId) {
       throw new ForbiddenException('You can only access your own profile');
     }
     let result: AccountDeleteUser.Response;
@@ -98,11 +97,11 @@ export class UserController {
     @Req() req: Request,
     @Body() dto: UpdateUserDto
   ){
-    const userInfo: AuthenticatedRequest = req['user'];
+    const userInfo: AuthUser = req['user'];
     const requestId = req['requestId'] as string;
     const timestamp = new Date().toISOString();
     this.logger.log(`Updating user with id ${userId}`, requestId);
-    if (userInfo.user.role === UserRole.USER && userInfo.user.sub !== userId) {
+    if (userInfo.role === UserRole.USER && userInfo.sub !== userId) {
       throw new ForbiddenException('You can only access your own profile');
     }
     let result: updateUserById.Response;
