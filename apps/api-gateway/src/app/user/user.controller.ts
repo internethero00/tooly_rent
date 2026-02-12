@@ -19,7 +19,10 @@ import {
   getUserById,
   updateUserById,
 } from '@tooly-rent/contracts';
-import { AuthenticatedRequest } from '../types/authenticatedRequest.type';
+import {
+  AuthenticatedRequest,
+  AuthUser,
+} from '../types/authenticatedRequest.type';
 
 @Controller('users')
 export class UserController {
@@ -59,11 +62,11 @@ export class UserController {
   @Authorization(UserRole.USER, UserRole.ADMIN)
   @Get(':id')
   async getUserById(@Param('id') userId: string, @Req() req: Request) {
-    const userInfo: AuthenticatedRequest = req['user'];
+    const userInfo: AuthUser = req['user'];
     const requestId = req['requestId'] as string;
     const timestamp = new Date().toISOString();
     this.logger.log(`Getting user with id ${userId}`, requestId);
-    if (userInfo.user.role === UserRole.USER && userInfo.user.sub !== userId) {
+    if (userInfo.role === UserRole.USER && userInfo.sub !== userId) {
       throw new ForbiddenException('You can only access your own profile');
     }
     let result: getUserById.Response;
