@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import {
   IUserRepository,
   USER_REPOSITORY,
@@ -19,7 +24,7 @@ export type PayloadType = {
   sub: string;
   email: string;
   role: string;
-}
+};
 @Injectable()
 export class AuthService {
   constructor(
@@ -43,9 +48,37 @@ export class AuthService {
       passwordHash: hashPassword,
       role: 'USER',
     });
-    await this.rmqService.notify<createUser.Request>(createUser.topic, {
-      userId: user.id,
-    });
+    console.log(
+      '✅ [Auth Service] User created, sending to User Service...',
+      user.id,
+    );
+    let result: createUser.Response;
+    try {
+      result = await this.rmqService.send<
+        createUser.Request,
+        createUser.Response
+      >(
+        createUser.topic,
+        {
+          userId: user.id,
+        },
+        { timeout: 5000 },
+      );
+    } catch (error) {
+      console.error(
+        '❌ [Auth Service] User Service did not respond:',
+        error.message,
+      );
+      await this.userRepository.delete(user.id);
+      throw new InternalServerErrorException('Failed to create user profile');
+    }
+
+    if (!result.created) {
+      console.error('❌ [Auth Service] User Service failed to create profile');
+      await this.userRepository.delete(user.id);
+      throw new InternalServerErrorException('Failed to create user profile');
+    }
+
     const tokens = this.generateTokens(user.id, user.email, user.role);
     return {
       id: user.id,
@@ -78,17 +111,21 @@ export class AuthService {
   }
 
   async verifyToken(token: string) {
-      const payload: PayloadType = await this.jwtService.verify(token, {
-        secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
-      });
-      const user = await this.userRepository.findById(payload.sub);
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-      return this.generateTokens(user.id, user.email, user.role);
+    const payload: PayloadType = await this.jwtService.verify(token, {
+      secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
+    });
+    const user = await this.userRepository.findById(payload.sub);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return this.generateTokens(user.id, user.email, user.role);
   }
 
-  private generateTokens(userId: string, email: string, role: string): AccountRefreshToken.Response {
+  private generateTokens(
+    userId: string,
+    email: string,
+    role: string,
+  ): AccountRefreshToken.Response {
     const payload = { sub: userId, email, role };
     const access_token = this.jwtService.sign(payload, {
       secret: this.configService.getOrThrow('JWT_ACCESS_SECRET'),
@@ -104,6 +141,6 @@ export class AuthService {
   }
 
   async findById(userId: string): Promise<UserEntity> {
-    return  await this.userRepository.findById(userId);
+    return await this.userRepository.findById(userId);
   }
 }

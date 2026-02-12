@@ -6,4 +6,7 @@ export namespace createUser {
   export class Request {
     userId?: string;
   }
+  export class Response {
+    created?: boolean;
+  }
 }
