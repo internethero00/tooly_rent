@@ -53,7 +53,7 @@ export class AuthService {
     requestId: string,
     timestamp: string,
   ): Promise<AccountRefreshToken.Response> {
-    return this.rmqService.send<
+    return await this.rmqService.send<
       AccountRefreshToken.Request,
       AccountRefreshToken.Response
     >(AccountRefreshToken.topic, token, {

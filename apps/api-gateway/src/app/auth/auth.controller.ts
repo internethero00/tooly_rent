@@ -6,6 +6,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { RegisterDto } from './dtos/register.dto';
 import { Request, Response } from 'express';
@@ -115,6 +116,9 @@ export class AuthController {
     const timestamp = new Date().toISOString();
     this.logger.log(`Refresh attempt`, requestId);
     const refreshToken = this.cookieManager.getRefreshToken(req);
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token');
+    }
     let result: AccountRefreshToken.Response
     try {
       result = await this.authService.refresh({refresh_token: refreshToken}, requestId, timestamp);
