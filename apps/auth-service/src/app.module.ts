@@ -5,6 +5,8 @@ import { RMQModule } from 'nestjs-rmq';
 import { getRMQConfig } from './config/rmq.config';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { join } from 'path';
+import { JwtModule } from '@nestjs/jwt';
+import { getJWTConfig } from './config/jwt.config';
 
 @Module({
   imports: [
@@ -14,6 +16,7 @@ import { join } from 'path';
       envFilePath: join(process.cwd(), 'envs', '.auth-service.env'),
     }),
     PrismaModule,
+    JwtModule.registerAsync(getJWTConfig()),
     RMQModule.forRootAsync(getRMQConfig()),
   ],
 })

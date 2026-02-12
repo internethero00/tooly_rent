@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './app/users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { RMQModule } from 'nestjs-rmq';
 import { getRMQConfig } from './config/rmq.config';
+import { PrismaModule } from './infrastructure/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -13,8 +13,8 @@ import { getRMQConfig } from './config/rmq.config';
       envFilePath: join(process.cwd(), 'envs', '.user-service.env'),
     }),
     PrismaModule,
-    UsersModule,
     RMQModule.forRootAsync(getRMQConfig()),
+    UsersModule,
   ],
 })
 export class AppModule {}
