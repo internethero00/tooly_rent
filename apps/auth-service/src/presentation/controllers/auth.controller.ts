@@ -59,7 +59,6 @@ export class AuthController {
   }
 
   @RMQRoute(AccountGetUserById.topic)
-  @RMQValidate()
   async getUserById(dto: AccountGetUserById.Request, @RMQMessage msg: Message) : Promise<AccountGetUserById.Response> {
     const requestId = msg.properties.headers?.requestId || 'unknown';
     this.logger.log(`[${requestId}][Auth Service] get user by id: ${dto.userId}`);
@@ -75,7 +74,6 @@ export class AuthController {
   }
 
   @RMQRoute(AccountRefreshToken.topic)
-  @RMQValidate()
   async refresh(
     dto: AccountRefreshToken.Request,
     @RMQMessage msg: Message,
@@ -83,6 +81,7 @@ export class AuthController {
     const requestId = msg.properties.headers?.requestId || 'unknown';
     this.logger.log(`[${requestId}][Auth Service] Refresh request for: ${requestId}`);
     try {
+      console.log(dto.refresh_token);
       const tokens = await this.authService.verifyToken(dto.refresh_token);
       this.logger.log(`[${requestId}][Auth Service] Refresh successful`);
       return tokens;
@@ -93,7 +92,6 @@ export class AuthController {
   }
 
   @RMQRoute(AccountDeleteUser.topic)
-  @RMQValidate()
   async deleteUser(
     command: AccountDeleteUser.Request,
     @RMQMessage msg: Message,
