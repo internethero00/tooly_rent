@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Tool {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  pricePerDay Decimal    @db.Decimal(10, 2)
+  images      Image[]
+  categories  Category[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("tools")
+}
+
+model Category {
+  id   String @id @default(cuid())
+  name String @unique
+  tool Tool[]
+
+  @@map("categories")
+}
+
+model Image {
+  id     String @id @default(cuid())
+  url    String
+  tool   Tool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  toolId String
+
+  @@map("images")
+}

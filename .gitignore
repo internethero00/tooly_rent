@@ -43,5 +43,7 @@ Thumbs.db
 .nx/workspace-data
 /apps/auth-service/src/generated/
 /apps/user-service/src/generated/
+/apps/listing-service/src/generated/
 /apps/auth-service/generated/
 /apps/user-service/generated/
+/apps/listing-service/generated/
