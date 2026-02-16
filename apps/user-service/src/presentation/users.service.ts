@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   IUserProfileRepository,
   USER_PROFILE_REPOSITORY,
@@ -27,7 +27,12 @@ export class UsersService {
   async updateUserById(
     {userId, ...data}: updateUserById.Request,
   ): Promise<UserProfileEntity> {
-    return await this.userProfileRepository.updateProfileById(userId, data)
+    try {
+      return await this.userProfileRepository.updateProfileById(userId, data)
+    }
+    catch {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
   }
 
   async createUser(userId: string): Promise<UserProfileEntity> {
