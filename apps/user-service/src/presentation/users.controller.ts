@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { UsersService } from '../../app/users/users.service';
+import { UsersService } from './users.service';
 import { Message, RMQMessage, RMQRoute } from 'nestjs-rmq';
 import {
   ACCOUNT_DELETION_STARTED,

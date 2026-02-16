@@ -14,8 +14,8 @@ export class UserPortfolioRepository implements IUserProfileRepository {
     const user = await this.prismaService.userProfile.create({
       data: {
         userId,
-      }
-    })
+      },
+    });
     return user ? this.mapToEntity(user) : null;
   }
 
@@ -28,10 +28,11 @@ export class UserPortfolioRepository implements IUserProfileRepository {
   async getAllUsers(): Promise<UserProfileEntity[]> {
     return this.prismaService.userProfile.findMany();
   }
-  async deleteUserById(userId: string): Promise<void> {
-    await this.prismaService.userProfile.delete({
+  async deleteUserById(userId: string): Promise<UserProfileEntity> {
+    const deletedUser = await this.prismaService.userProfile.delete({
       where: { userId },
     });
+    return this.mapToEntity(deletedUser);
   }
   async updateProfileById(
     userId: string,

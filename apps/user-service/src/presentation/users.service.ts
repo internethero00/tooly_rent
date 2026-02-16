@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   IUserProfileRepository,
   USER_PROFILE_REPOSITORY,
-} from '../../domain/repositories/user.repository.interface';
+} from '../domain/repositories/user.repository.interface';
 import { RMQService } from 'nestjs-rmq';
 import {
   AccountUserDeletionStarted,
@@ -14,7 +14,7 @@ import {
   AccountGetUserById,
   updateUserById,
 } from '@tooly-rent/contracts';
-import { UserProfileEntity } from '../../domain/entities/user.profile.entity';
+import { UserProfileEntity } from '../domain/entities/user.profile.entity';
 
 @Injectable()
 export class UsersService {

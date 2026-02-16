@@ -6,7 +6,7 @@ import { resolve } from 'path';
 dotenv.config({ path: resolve(process.cwd(), 'envs', '.user-service.env') });
 console.log('AMQP_EXCHANGE=', process.env.AMQP_EXCHANGE);
 
-import { AppModule } from './app.module';
+import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
