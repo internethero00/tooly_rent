@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { RequestIdInterceptor} from '@tooly-rent/common'
@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new RequestIdInterceptor());
   app.use(cookieParser());
   const globalPrefix = 'api';

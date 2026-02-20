@@ -7,3 +7,7 @@ export * from './lib/account/account.delete.user';
 export * from './lib/user-profile/user-profile.getUserById'
 export * from './lib/user-profile/user-profile.new-user'
 export * from './lib/user-profile/user-profile.updateUserById'
+export * from './lib/category/category.get-category-by-id'
+export * from './lib/category/category.delete.category'
+export * from './lib/category/category.get-all-categories'
+export * from './lib/category/category.updateCategoryById'

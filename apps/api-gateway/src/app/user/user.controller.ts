@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Param,
   Put,
@@ -11,7 +10,10 @@ import {
 import { LoggerService } from '@tooly-rent/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update.user.dto';
-import { Authorization } from '../decorators/auth.decorator';
+import {
+  Authorization,
+  AuthorizeSelfOrAdmin,
+} from '../decorators/auth.decorator';
 import { UserRole } from '../decorators/roles.decorator';
 import { Request } from 'express';
 import {
@@ -19,9 +21,7 @@ import {
   getUserById,
   updateUserById,
 } from '@tooly-rent/contracts';
-import {
-  AuthUser,
-} from '../types/authenticatedRequest.type';
+
 
 @Controller('users')
 export class UserController {
@@ -30,15 +30,12 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Authorization(UserRole.USER, UserRole.ADMIN)
+  @AuthorizeSelfOrAdmin()
   @Delete(':id')
   async deleteUserById(@Param('id') userId: string, @Req() req: Request) {
-    const userInfo: AuthUser = req['user'];
     const requestId = req['requestId'] as string;
     const timestamp = new Date().toISOString();
     this.logger.log(`Deleting user with id ${userId}`, requestId);
-    if (userInfo.role === UserRole.USER && userInfo.sub !== userId) {
-      throw new ForbiddenException('You can only access your own profile');
-    }
     let result: AccountDeleteUser.Response;
     try {
       result = await this.userService.deleteUserById(
@@ -48,7 +45,7 @@ export class UserController {
       );
       this.logger.log(`Deleting user with id successful: ${userId}`, requestId);
       return result;
-    }catch(e) {
+    } catch (e) {
       this.logger.error(
         `Deleting user with id: ${e.message}`,
         e.stack,
@@ -59,15 +56,12 @@ export class UserController {
   }
 
   @Authorization(UserRole.USER, UserRole.ADMIN)
+  @AuthorizeSelfOrAdmin()
   @Get(':id')
   async getUserById(@Param('id') userId: string, @Req() req: Request) {
-    const userInfo: AuthUser = req['user'];
     const requestId = req['requestId'] as string;
     const timestamp = new Date().toISOString();
     this.logger.log(`Getting user with id ${userId}`, requestId);
-    if (userInfo.role === UserRole.USER && userInfo.sub !== userId) {
-      throw new ForbiddenException('You can only access your own profile');
-    }
     let result: getUserById.Response;
     try {
       result = await this.userService.getUserById(
@@ -91,19 +85,16 @@ export class UserController {
   }
 
   @Authorization(UserRole.USER)
+  @AuthorizeSelfOrAdmin()
   @Put(':id')
   async updateUserById(
     @Param('id') userId: string,
     @Req() req: Request,
-    @Body() dto: UpdateUserDto
-  ){
-    const userInfo: AuthUser = req['user'];
+    @Body() dto: UpdateUserDto,
+  ) {
     const requestId = req['requestId'] as string;
     const timestamp = new Date().toISOString();
     this.logger.log(`Updating user with id ${userId}`, requestId);
-    if (userInfo.role === UserRole.USER && userInfo.sub !== userId) {
-      throw new ForbiddenException('You can only access your own profile');
-    }
     let result: updateUserById.Response;
     try {
       result = await this.userService.updateUserById(
@@ -113,9 +104,12 @@ export class UserController {
       );
       this.logger.log(`Updating user with id successful`, requestId);
       return result;
-    }
-    catch(e) {
-      this.logger.error(`Updating user with id: ${e.message}`, e.stack, requestId );
+    } catch (e) {
+      this.logger.error(
+        `Updating user with id: ${e.message}`,
+        e.stack,
+        requestId,
+      );
       throw e;
     }
   }
