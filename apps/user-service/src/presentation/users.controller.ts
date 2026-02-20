@@ -14,9 +14,7 @@ import { LoggerService } from '@tooly-rent/common';
 export class UsersController {
   private readonly logger = new LoggerService(UsersController.name);
 
-  constructor(private readonly usersService: UsersService) {
-    console.log('🚀 UsersController initialized');
-  }
+  constructor(private readonly usersService: UsersService) {}
 
   @RMQRoute(createUser.topic)
   async createUser(

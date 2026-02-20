@@ -37,4 +37,10 @@ export class ToolService {
   async createTool(data: ToolData): Promise<ListingEntity> {
     return await this.listingRepository.createTool(data);
   }
+
+  async getAllTools() : Promise<ListingEntity[]> {
+    const tools = await this.listingRepository.getAllTools();
+    if (!tools) throw new NotFoundException(`Tools not found`);
+    return tools;
+  }
 }
