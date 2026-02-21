@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { RMQService } from 'nestjs-rmq';
 import {
+  createCategory,
   deleteCategoryById,
   getAllCategory,
   getCategoryById,
@@ -12,6 +13,22 @@ import {
 export class CategoryService {
   constructor(private readonly rmqService: RMQService) {}
 
+  async createCategory(
+    name: createCategory.Request,
+    requestId: string,
+    timestamp: string,
+  ): Promise<createCategory.Response> {
+    return this.rmqService.send<
+      createCategory.Request,
+      createCategory.Response
+    >(createCategory.topic, name, {
+      headers: {
+        requestId,
+        timestamp,
+        service: 'api-gateway',
+      },
+    });
+  };
   async getCategoryById(
     categoryId: getCategoryById.Request,
     requestId: string,

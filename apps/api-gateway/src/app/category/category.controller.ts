@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Put, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Req,
+} from '@nestjs/common';
 import { LoggerService } from '@tooly-rent/common';
 import { CategoryService } from './category.service';
 import {
@@ -8,11 +17,12 @@ import {
 import { UserRole } from '../decorators/roles.decorator';
 import { Request } from 'express';
 import {
+  createCategory,
   deleteCategoryById,
   getCategoryById,
   updateCategoryById,
 } from '@tooly-rent/contracts';
-import { UpdateCategoryDto } from './dto/update.category.dto';
+import { CategoryDto } from './dto/categoryDto';
 
 @Controller('categories')
 export class CategoryController {
@@ -102,7 +112,7 @@ export class CategoryController {
   async updateCategoryById(
     @Param('id') categoryId: string,
     @Req() req: Request,
-    @Body() dto: UpdateCategoryDto,
+    @Body() dto: CategoryDto,
   ) {
     const requestId = req['requestId'] as string;
     const timestamp = new Date().toISOString();
@@ -111,6 +121,35 @@ export class CategoryController {
     try {
       result = await this.categoryService.updateCategoryById(
         { categoryId, name: dto.name },
+        requestId,
+        timestamp,
+      );
+      this.logger.log(`Updating category with id successful`, requestId);
+      return result;
+    } catch (e) {
+      this.logger.error(
+        `Updating category with id: ${e.message}`,
+        e.stack,
+        requestId,
+      );
+      throw e;
+    }
+  }
+
+  @Authorization(UserRole.ADMIN)
+  @AuthorizeSelfOrAdmin()
+  @Post()
+  async createCategory(
+    @Req() req: Request,
+    @Body() dto: CategoryDto,
+  ) {
+    const requestId = req['requestId'] as string;
+    const timestamp = new Date().toISOString();
+    this.logger.log(`Creating category`, requestId);
+    let result: createCategory.Response;
+    try {
+      result = await this.categoryService.createCategory(
+        dto,
         requestId,
         timestamp,
       );
