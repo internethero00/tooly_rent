@@ -16,9 +16,9 @@ export class CategoryRepository implements ICategoryRepository {
     });
     return category ? this.mapToEntity(category) : null;
   }
-  async getAllCategories(): Promise<CategoryEntity[]> {
+  async getAllCategories(): Promise<Pick<CategoryEntity, 'id' | 'name'>[]> {
     const categories = await this.prismaService.category.findMany();
-    return categories.map((category) => this.mapToEntity(category));
+    return categories.map((category) => ({id: category.id, name: category.name}));
   }
   async deleteCategoryById(id: string): Promise<CategoryEntity> {
     const deleted = await this.prismaService.category.delete({
@@ -38,11 +38,11 @@ export class CategoryRepository implements ICategoryRepository {
     });
     return this.mapToEntity(updated);
   }
-  async createCategory(data: CategoryData): Promise<CategoryEntity> {
+  async createCategory(name: string): Promise<CategoryEntity> {
     const newCategory = await this.prismaService.category.create({
       data: {
-        name: data.name,
-      }
+        name,
+      },
     });
 
     return this.mapToEntity(newCategory);

@@ -14,7 +14,8 @@ export class CategoryService {
   ) {}
   async getCategoryById(id: string): Promise<CategoryEntity | null> {
     const category = await this.categoryRepository.getCategoryById(id);
-    if (!category) throw new NotFoundException(`Category with id ${id} not found`);
+    if (!category)
+      throw new NotFoundException(`Category with id ${id} not found`);
     return category;
   }
 
@@ -37,13 +38,11 @@ export class CategoryService {
     }
   }
 
-  async createCategory(data: CategoryData): Promise<CategoryEntity> {
-    return await this.categoryRepository.createCategory(data);
+  async createCategory(name: string): Promise<CategoryEntity> {
+    return await this.categoryRepository.createCategory(name);
   }
 
-  async getAllCategories(): Promise<CategoryEntity[]> {
-    const categories = await this.categoryRepository.getAllCategories();
-    if (!categories) throw new NotFoundException(`Categories not found`);
-    return categories;
+  async getAllCategories(): Promise<Pick<CategoryEntity, 'id' | 'name'>[]> {
+    return await this.categoryRepository.getAllCategories();
   }
 }
