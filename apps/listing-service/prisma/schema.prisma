@@ -8,31 +8,43 @@ datasource db {
 }
 
 model Tool {
-  id          String     @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
   description String
-  pricePerDay Decimal    @db.Decimal(10, 2)
+  pricePerDay Decimal  @map("price_per_day") @db.Decimal(10, 2)
   images      Image[]
-  categories  Category[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  categories  ToolCategory[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("tools")
 }
 
 model Category {
-  id   String @id @default(cuid())
-  name String @unique
-  tool Tool[]
+  id        String         @id @default(cuid())
+  name      String         @unique
+  tools     ToolCategory[]
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
 
   @@map("categories")
+}
+
+model ToolCategory {
+  tool       Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  toolId     String   @map("tool_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String   @map("category_id")
+
+  @@id([toolId, categoryId])
+  @@map("tool_categories")
 }
 
 model Image {
   id     String @id @default(cuid())
   url    String
   tool   Tool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
-  toolId String
+  toolId String @map("tool_id")
 
   @@map("images")
 }

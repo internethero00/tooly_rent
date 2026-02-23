@@ -21,7 +21,6 @@ export class UsersController {
     dto: createUser.Request,
     @RMQMessage msg: Message,
   ): Promise<createUser.Response> {
-    console.log('📥 [User Service] Received message:', dto);
     const requestId = msg.properties.headers?.requestId || 'unknown';
     this.logger.log(
       `[${requestId}][User Service] creating user by id: ${dto.userId}`,
@@ -35,7 +34,6 @@ export class UsersController {
       }
       return {created: true};
     } catch (e) {
-      console.error('❌ [User Service] Error:', e);
       this.logger.error(
         `[${requestId}][User Service] creating user failed:`,
         e.message,

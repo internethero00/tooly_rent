@@ -17,7 +17,8 @@
     "paths": {
       "@tooly-rent/contracts": ["libs/contracts/src/index.ts"],
       "@tooly-rent/common": ["libs/common/src/index.ts"]
-    }
+    },
+    "typeRoots": ["./node_modules/@types"]
   },
   "exclude": ["node_modules", "tmp"]
 }

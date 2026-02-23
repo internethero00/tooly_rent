@@ -12,3 +12,4 @@ export * from './lib/category/category.delete.category'
 export * from './lib/category/category.get-all-categories'
 export * from './lib/category/category.updateCategoryById'
 export * from './lib/category/category.create.category'
+export * from './lib/tool/tool.create.tool';

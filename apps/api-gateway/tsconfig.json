@@ -11,6 +11,7 @@
     }
   ],
   "compilerOptions": {
+    "types": ["node", "express", "multer"],
     "esModuleInterop": true
   }
 }
