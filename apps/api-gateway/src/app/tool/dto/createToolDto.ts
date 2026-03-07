@@ -2,21 +2,10 @@ import {
   IsString,
   IsNumber,
   IsArray,
-  ValidateNested,
   IsNotEmpty,
   Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-
-class CategoryDto {
-  @IsString()
-  @IsNotEmpty()
-  id: string;
-
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-}
+import { Transform, Type } from 'class-transformer';
 
 export class CreateToolDto {
   @IsString()
@@ -33,7 +22,9 @@ export class CreateToolDto {
   pricePerDay: number;
 
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CategoryDto)
-  categories: CategoryDto[];
+  @IsString({ each: true })
+  @Transform(({ value }) => {
+    return typeof value === 'string' ? JSON.parse(value) : value;
+  })
+  categories: string[];
 }
