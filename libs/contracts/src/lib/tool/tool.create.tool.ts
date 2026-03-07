@@ -1,5 +1,8 @@
-import { IsString, IsNumber, IsArray, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsNumber,
+  IsArray,
+} from 'class-validator';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace createTool {
@@ -28,9 +31,8 @@ export namespace createTool {
     images?: string[];
 
     @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => CategoryInput)
-    categories?: CategoryInput[];
+    @IsString({ each: true })
+    categoryIds?: string[];
   }
   export class Response {
     toolId?: string;
