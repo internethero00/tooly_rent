@@ -34,12 +34,26 @@ export class ListingRepository implements IListingRepository {
         description: data.description,
         pricePerDay: data.pricePerDay,
         categories: {
-          set: data.categoryIds.map((id) => ({ id })),
+          deleteMany: {},
+          create: data.categoryIds.map((cat) => ({
+            category: {
+              connect: { id: cat.id },
+            },
+          })),
+        },
+
+        images: {
+          deleteMany: {},
+          create: data.imageUrl.map((url) => ({ url })),
         },
       },
       include: {
         images: true,
-        categories: true,
+        categories: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
     return this.mapToEntity(updated);
@@ -51,14 +65,27 @@ export class ListingRepository implements IListingRepository {
         description: data.description,
         pricePerDay: data.pricePerDay,
         categories: {
-          connect: data.categoryIds.map((id) => ({
-            id,
+          create: data.categoryIds.map(cat => (
+            {
+              category: {
+                connect: {id: cat.id}
+              }
+            }
+          ))
+        },
+        images: {
+          create: data.imageUrl.map(url => ({
+            url
           })),
         },
       },
       include: {
         images: true,
-        categories: true,
+        categories: {
+          include: {
+            category: true,
+          }
+        },
       },
     });
 

@@ -35,6 +35,7 @@ model ToolCategory {
   toolId     String   @map("tool_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId String   @map("category_id")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   @@id([toolId, categoryId])
   @@map("tool_categories")

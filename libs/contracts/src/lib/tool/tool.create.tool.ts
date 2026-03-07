@@ -5,7 +5,7 @@ import { Type } from 'class-transformer';
 export namespace createTool {
   export const topic = 'tool.create.command';
 
-  class CategoryInput {
+  export class CategoryInput {
     @IsString()
     id?: string;
 
@@ -25,7 +25,7 @@ export namespace createTool {
 
     @IsArray()
     @IsString({ each: true })
-    images?: string[]; // Массив URL или base64
+    images?: string[];
 
     @IsArray()
     @ValidateNested({ each: true })

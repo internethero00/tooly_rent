@@ -17,7 +17,7 @@ export class CategoryController {
 
     try {
       const category = await this.categoryService.createCategory(dto.name);
-      if (!category) {
+      if (category) {
         return { id: category.id, name: category.name };
       }
     } catch (e) {

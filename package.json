@@ -2,7 +2,9 @@
   "name": "@tooly-rent/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "debug:api-gateway": "nx serve api-gateway --inspect=0.0.0.0:9229"
+  },
   "private": true,
   "dependencies": {
     "@aws-sdk/client-s3": "^3.996.0",
