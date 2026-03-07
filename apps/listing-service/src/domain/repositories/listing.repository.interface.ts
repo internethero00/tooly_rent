@@ -1,6 +1,4 @@
 import { ListingEntity } from '../entities/listing.entity';
-import { createTool } from '@tooly-rent/contracts';
-import CategoryInput = createTool.CategoryInput;
 
 export const LISTING_REPOSITORY = Symbol('LISTING_REPOSITORY');
 
@@ -16,6 +14,6 @@ export interface ToolData {
   title?: string;
   description?: string;
   pricePerDay?: number;
-  categoryIds?: CategoryInput[];
+  categoryIds?: string[];
   imageUrl?: string[];
 }

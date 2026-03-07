@@ -37,7 +37,7 @@ export class ListingRepository implements IListingRepository {
           deleteMany: {},
           create: data.categoryIds.map((cat) => ({
             category: {
-              connect: { id: cat.id },
+              connect: { id: cat },
             },
           })),
         },
@@ -68,7 +68,7 @@ export class ListingRepository implements IListingRepository {
           create: data.categoryIds.map(cat => (
             {
               category: {
-                connect: {id: cat.id}
+                connect: {id: cat}
               }
             }
           ))
