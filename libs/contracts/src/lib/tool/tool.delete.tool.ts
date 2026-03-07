@@ -1,11 +1,15 @@
+import { IsNotEmpty, IsString } from 'class-validator';
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace deleteCategoryById {
-  export const topic = 'category.delete-by-id.command';
+export namespace deleteToolById {
+  export const topic = 'tool.delete-by-id.command';
   export class Request {
-    categoryId?: string;
+    @IsString()
+    @IsNotEmpty()
+    toolId?: string;
   }
   export class Response {
-    id?: string;
-    name?: string;
+    success?: boolean;
+    deletedId?: string;
   }
 }

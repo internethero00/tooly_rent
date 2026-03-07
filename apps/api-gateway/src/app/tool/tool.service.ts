@@ -5,6 +5,7 @@ import {
 } from '@tooly-rent/contracts';
 import { CreateToolDto } from './dto/createToolDto';
 import {StorageService} from "../s3/storage.service";
+import { updateToolById } from '@tooly-rent/contracts';
 
 
 @Injectable()
@@ -51,6 +52,24 @@ export class ToolService {
         },
       },
     );
+  }
+  async updateToolById(
+    toolId: string,
+    dto: updateToolById.Request,
+    files: Express.Multer.File[],
+    requestId: string,
+    timestamp: string,
+  ): Promise<updateToolById.Response> {
+    return await this.rmqService.send<
+      updateToolById.Request,
+      updateToolById.Response
+    >(updateToolById.topic, dto, {
+      headers: {
+        requestId,
+        timestamp,
+        service: 'api-gateway',
+      },
+    });
   }
   // async getToolById(
   //   categoryId: getCategoryById.Request,
@@ -102,20 +121,4 @@ export class ToolService {
   //   });
   // }
   //
-  // async updateToolById(
-  //   dto: updateCategoryById.Request,
-  //   requestId: string,
-  //   timestamp: string,
-  // ): Promise<updateCategoryById.Response> {
-  //   return await this.rmqService.send<
-  //     updateCategoryById.Request,
-  //     updateCategoryById.Response
-  //   >(updateCategoryById.topic, dto, {
-  //     headers: {
-  //       requestId,
-  //       timestamp,
-  //       service: 'api-gateway',
-  //     },
-  //   });
-  // }
 }

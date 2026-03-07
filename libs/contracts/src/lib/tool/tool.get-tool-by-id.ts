@@ -1,11 +1,19 @@
+import { Category, Image } from './tool.get-all-tools';
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace getCategoryById {
-  export const topic = 'category.get-by-id.query';
+export namespace getToolById {
+  export const topic = 'tool.get-by-id.query';
   export class Request {
-    categoryId?: string;
+    toolId?: string;
   }
   export class Response {
     id?: string;
-    name?: string;
+    title?: string;
+    description?: string;
+    pricePerDay?: number;
+    images?: Image[];
+    categories?: Category[];
+    createdAt?: Date;
+    updatedAt?: Date;
   }
 }

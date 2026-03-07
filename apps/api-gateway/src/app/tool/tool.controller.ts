@@ -3,8 +3,10 @@ import {
   Controller,
   FileTypeValidator,
   MaxFileSizeValidator,
+  Param,
   ParseFilePipe,
   Post,
+  Put,
   Req,
   UploadedFiles,
   UseInterceptors,
@@ -19,6 +21,7 @@ import { UserRole } from '../decorators/roles.decorator';
 import { Request } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateToolDto } from './dto/createToolDto';
+import { UpdateToolDto } from './dto/updateToolDto';
 
 
 @Controller('tools')
@@ -26,6 +29,47 @@ class ToolController {
   private readonly logger = new LoggerService(ToolController.name);
 
   constructor(private readonly toolService: ToolService) {}
+
+  @Put(':id')
+  @Authorization(UserRole.ADMIN)
+  @UseInterceptors(FilesInterceptor('files', 10))
+  async updateToolById(
+    @Param('id') toolId: string,
+    @Req() req: Request,
+    @Body() dto: UpdateToolDto,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /(jpg|jpeg|png|webp)$/ }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    files: Express.Multer.File[],
+  ) {
+    const requestId = req['requestId'] as string;
+    const timestamp = new Date().toISOString();
+    this.logger.log(`Updating tool`, requestId);
+    try {
+      const result = await this.toolService.updateToolById(
+        toolId,
+        dto,
+        files,
+        requestId,
+        timestamp,
+      );
+      this.logger.log(`Updating tool with id successful`, requestId);
+      return result;
+    } catch (e) {
+      this.logger.error(
+        `Updating tool with id: ${e.message}`,
+        e.stack,
+        requestId,
+      );
+      throw e;
+    }
+  }
 
   @Authorization(UserRole.ADMIN)
   @AuthorizeSelfOrAdmin()
