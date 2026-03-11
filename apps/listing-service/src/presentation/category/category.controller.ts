@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { Message, RMQMessage, RMQRoute } from 'nestjs-rmq';
-import { createCategory, getAllCategory } from '@tooly-rent/contracts';
+import { createCategory, getAllCategory, getCategoryById } from '@tooly-rent/contracts';
 import { LoggerService } from '@tooly-rent/common';
 
 @Controller()
@@ -29,6 +29,27 @@ export class CategoryController {
     }
   }
 
+  @RMQRoute(getCategoryById.topic)
+  async getCategoryById(
+    { categoryId }: getCategoryById.Request,
+    @RMQMessage msg: Message,
+  ) {
+    const requestId = msg.properties.headers?.requestId || 'unknown';
+    this.logger.log(
+      `[${requestId}][Category Service] get category by id ${categoryId}`,
+    );
+
+    try {
+      return await this.categoryService.getCategoryById(categoryId);
+    } catch (e) {
+      this.logger.error(
+        `[${requestId}][Category Service] getting category failed:`,
+        e.message,
+      );
+      throw e;
+    }
+  }
+
   @RMQRoute(getAllCategory.topic)
   async getAllCategories(@RMQMessage msg: Message) {
     const requestId = msg.properties.headers?.requestId || 'unknown';
@@ -38,7 +59,7 @@ export class CategoryController {
       return await this.categoryService.getAllCategories();
     } catch (e) {
       this.logger.error(
-        `[${requestId}][Category Service] getting category failed:`,
+        `[${requestId}][Category Service] getting categories failed:`,
         e.message,
       );
       throw e;
