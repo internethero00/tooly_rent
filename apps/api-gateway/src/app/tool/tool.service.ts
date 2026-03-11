@@ -5,7 +5,11 @@ import {
 } from '@tooly-rent/contracts';
 import { CreateToolDto } from './dto/createToolDto';
 import {StorageService} from "../s3/storage.service";
-import { updateToolById, getToolById } from '@tooly-rent/contracts';
+import {
+  updateToolById,
+  getToolById,
+  getAllTools,
+} from '@tooly-rent/contracts';
 
 
 @Injectable()
@@ -85,7 +89,7 @@ export class ToolService {
     );
   }
   async getToolById(
-     toolId : getToolById.Request,
+    toolId: getToolById.Request,
     requestId: string,
     timestamp: string,
   ): Promise<getToolById.Response> {
@@ -102,21 +106,23 @@ export class ToolService {
     );
   }
 
-  // async getAllTools(
-  //   requestId: string,
-  //   timestamp: string,
-  // ): Promise<getAllCategory.Response> {
-  //   return this.rmqService.send<object, getAllCategory.Response>(
-  //     getAllCategory.topic,
-  //     {
-  //       headers: {
-  //         requestId,
-  //         timestamp,
-  //         service: 'api-gateway',
-  //       },
-  //     },
-  //   );
-  // }
+  async getAllTools(
+    dto: getAllTools.Request,
+    requestId: string,
+    timestamp: string,
+  ): Promise<getAllTools.Response> {
+    return this.rmqService.send<getAllTools.Request, getAllTools.Response>(
+      getAllTools.topic,
+      dto,
+      {
+        headers: {
+          requestId,
+          timestamp,
+          service: 'api-gateway',
+        },
+      },
+    );
+  }
   //
   // async deleteToolById(
   //   categoryId: deleteCategoryById.Request,

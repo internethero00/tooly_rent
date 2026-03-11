@@ -23,6 +23,7 @@ import { Request } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateToolDto } from './dto/createToolDto';
 import { UpdateToolDto } from './dto/updateToolDto';
+import {getAllTools} from '@tooly-rent/contracts'
 
 
 @Controller('tools')
@@ -89,6 +90,26 @@ class ToolController {
     catch (e) {
       this.logger.error(
         `Getting tool with id: ${e.message}`,
+        e.stack,
+        requestId,
+      );
+      throw e;
+    }
+  }
+
+  @Get('all')
+  async getAllTools(@Req() req: Request, @Body() dto: getAllTools.Response) {
+    const requestId = req['requestId'] as string;
+    const timestamp = new Date().toISOString();
+    this.logger.log(`Getting all tools`, requestId);
+    try {
+      const result = await this.toolService.getAllTools(dto, requestId, timestamp);
+      this.logger.log(`Getting tools successful`, requestId);
+      return result;
+    }
+    catch (e) {
+      this.logger.error(
+        `Getting tools failed: ${e.message}`,
         e.stack,
         requestId,
       );
