@@ -32,7 +32,7 @@ export namespace createTool {
 
     @IsArray()
     @IsString({ each: true })
-    categoryIds?: string[];
+    categories?: string[];
   }
   export class Response {
     toolId?: string;
