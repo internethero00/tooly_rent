@@ -5,7 +5,7 @@ import {
 } from '@tooly-rent/contracts';
 import { CreateToolDto } from './dto/createToolDto';
 import {StorageService} from "../s3/storage.service";
-import { updateToolById } from '@tooly-rent/contracts';
+import { updateToolById, getToolById } from '@tooly-rent/contracts';
 
 
 @Injectable()
@@ -60,34 +60,48 @@ export class ToolService {
     requestId: string,
     timestamp: string,
   ): Promise<updateToolById.Response> {
+    const imageUrls = await this.uploadFiles(files);
+
     return await this.rmqService.send<
       updateToolById.Request,
       updateToolById.Response
-    >(updateToolById.topic, dto, {
-      headers: {
-        requestId,
-        timestamp,
-        service: 'api-gateway',
+    >(
+      updateToolById.topic,
+      {
+        toolId,
+        title: dto.title,
+        description: dto.description,
+        pricePerDay: dto.pricePerDay,
+        images: imageUrls,
+        categoryIds: dto.categoryIds,
       },
-    });
+      {
+        headers: {
+          requestId,
+          timestamp,
+          service: 'api-gateway',
+        },
+      },
+    );
   }
-  // async getToolById(
-  //   categoryId: getCategoryById.Request,
-  //   requestId: string,
-  //   timestamp: string,
-  // ): Promise<getCategoryById.Response> {
-  //   return this.rmqService.send<
-  //     getCategoryById.Request,
-  //     getCategoryById.Response
-  //   >(getCategoryById.topic, categoryId, {
-  //     headers: {
-  //       requestId,
-  //       timestamp,
-  //       service: 'api-gateway',
-  //     },
-  //   });
-  // }
-  //
+  async getToolById(
+     toolId : getToolById.Request,
+    requestId: string,
+    timestamp: string,
+  ): Promise<getToolById.Response> {
+    return this.rmqService.send<getToolById.Request, getToolById.Response>(
+      getToolById.topic,
+      toolId,
+      {
+        headers: {
+          requestId,
+          timestamp,
+          service: 'api-gateway',
+        },
+      },
+    );
+  }
+
   // async getAllTools(
   //   requestId: string,
   //   timestamp: string,
