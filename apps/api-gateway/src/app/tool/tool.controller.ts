@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   FileTypeValidator,
+  Get,
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
@@ -64,6 +65,30 @@ class ToolController {
     } catch (e) {
       this.logger.error(
         `Updating tool with id: ${e.message}`,
+        e.stack,
+        requestId,
+      );
+      throw e;
+    }
+  }
+
+  @Get(':id')
+  async getToolById(@Param('id') toolId: string, @Req() req: Request) {
+    const requestId = req['requestId'] as string;
+    const timestamp = new Date().toISOString();
+    this.logger.log(`Getting tool by ${toolId}`, requestId);
+    try {
+      const result = await this.toolService.getToolById(
+        { toolId },
+        requestId,
+        timestamp,
+      );
+      this.logger.log(`Getting tool with id = ${toolId} successful`, requestId);
+      return result;
+    }
+    catch (e) {
+      this.logger.error(
+        `Getting tool with id: ${e.message}`,
         e.stack,
         requestId,
       );

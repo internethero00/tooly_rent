@@ -1,7 +1,7 @@
 import { Controller, Logger } from '@nestjs/common';
 import { ToolService } from './tool.service';
 import { Message, RMQMessage, RMQRoute, RMQValidate } from 'nestjs-rmq';
-import { createTool, updateToolById } from '@tooly-rent/contracts';
+import { createTool, getToolById, updateToolById } from '@tooly-rent/contracts';
 
 @Controller()
 export class ToolController {
@@ -56,6 +56,23 @@ export class ToolController {
       };
     } catch (error) {
       this.logger.error(`[${requestId}][Tool Service] Tool updating failed`);
+      throw error;
+    }
+  }
+
+  @RMQRoute(getToolById.topic)
+  async getToolById({toolId}: getToolById.Request, @RMQMessage msg: Message) {
+    const requestId = msg.properties.headers?.requestId || 'unknown';
+    this.logger.log(`[${requestId}][Tool Service] Getting tool request`);
+    try {
+      const result = await this.toolyService.getToolById(toolId)
+      this.logger.log(
+        `[${requestId}][Tool Service] Tool getting: ${result.id}`,
+      );
+      return result
+    }
+    catch (error) {
+      this.logger.error(`[${requestId}][Tool Service] Tool getting id ${toolId} failed`);
       throw error;
     }
   }
