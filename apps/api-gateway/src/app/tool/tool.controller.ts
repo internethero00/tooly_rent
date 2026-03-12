@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   FileTypeValidator,
   Get,
   MaxFileSizeValidator,
@@ -86,10 +87,34 @@ class ToolController {
       );
       this.logger.log(`Getting tool with id = ${toolId} successful`, requestId);
       return result;
-    }
-    catch (e) {
+    } catch (e) {
       this.logger.error(
         `Getting tool with id: ${e.message}`,
+        e.stack,
+        requestId,
+      );
+      throw e;
+    }
+  }
+
+  @Delete(':id')
+  async deleteTool(@Param('id') toolId: string, @Req() req: Request) {
+    const requestId = req['requestId'] as string;
+    const timestamp = new Date().toISOString();
+    this.logger.log(`Deleting tool id=${toolId}`, requestId);
+    try {
+      const result = await this.toolService.deleteToolById(
+        { toolId },
+        requestId,
+        timestamp,
+      );
+      this.logger.log(`Deleting tool with id = ${toolId} successful`,
+        requestId,
+      );
+      return result;
+    } catch (e) {
+      this.logger.error(
+        `Deleting tool with id: ${e.message}`,
         e.stack,
         requestId,
       );
@@ -103,11 +128,14 @@ class ToolController {
     const timestamp = new Date().toISOString();
     this.logger.log(`Getting all tools`, requestId);
     try {
-      const result = await this.toolService.getAllTools(dto, requestId, timestamp);
+      const result = await this.toolService.getAllTools(
+        dto,
+        requestId,
+        timestamp,
+      );
       this.logger.log(`Getting tools successful`, requestId);
       return result;
-    }
-    catch (e) {
+    } catch (e) {
       this.logger.error(
         `Getting tools failed: ${e.message}`,
         e.stack,

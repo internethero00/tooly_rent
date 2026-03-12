@@ -10,6 +10,7 @@ import {
   getToolById,
   getAllTools,
 } from '@tooly-rent/contracts';
+import { deleteToolById } from '../../../../../libs/contracts/src/lib/tool/tool.delete.tool';
 
 
 @Injectable()
@@ -123,22 +124,21 @@ export class ToolService {
       },
     );
   }
-  //
-  // async deleteToolById(
-  //   categoryId: deleteCategoryById.Request,
-  //   requestId: string,
-  //   timestamp: string,
-  // ): Promise<deleteCategoryById.Response> {
-  //   return await this.rmqService.send<
-  //     deleteCategoryById.Request,
-  //     deleteCategoryById.Response
-  //   >(deleteCategoryById.topic, categoryId, {
-  //     headers: {
-  //       requestId,
-  //       timestamp,
-  //       service: 'api-gateway',
-  //     },
-  //   });
-  // }
-  //
+
+  async deleteToolById(
+    toolId: deleteToolById.Request,
+    requestId: string,
+    timestamp: string,
+  ): Promise<deleteToolById.Response> {
+    return await this.rmqService.send<
+      deleteToolById.Request,
+      deleteToolById.Response
+    >(deleteToolById.topic, toolId, {
+      headers: {
+        requestId,
+        timestamp,
+        service: 'api-gateway',
+      },
+    });
+  }
 }
