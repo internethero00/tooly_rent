@@ -71,18 +71,18 @@ export namespace getAllTools {
     take?: number;
     hasMore?: boolean;
   }
+  export interface ITool {
+    id: string;
+    title: string;
+    description: string;
+    pricePerDay: number;
+    images: Image[];
+    categories: Category[];
+    createdAt: Date;
+    updatedAt: Date;
+  }
 }
 
-export interface ITool {
-  id: string;
-  title: string;
-  description: string;
-  pricePerDay: number;
-  images: Image[];
-  categories: Category[];
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface Image {
   id: string;

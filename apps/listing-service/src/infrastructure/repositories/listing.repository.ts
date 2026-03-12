@@ -15,10 +15,6 @@ export class ListingRepository implements IListingRepository {
     });
     return tool ? this.mapToEntity(tool) : null;
   }
-  async getAllTools(): Promise<ListingEntity[]> {
-    const tools = await this.prismaService.tool.findMany();
-    return tools.map((tool) => this.mapToEntity(tool));
-  }
   async deleteToolById(id: string): Promise<ListingEntity> {
     const deleted = await this.prismaService.tool.delete({
       where: { id },
@@ -65,17 +61,15 @@ export class ListingRepository implements IListingRepository {
         description: data.description,
         pricePerDay: data.pricePerDay,
         categories: {
-          create: data.categoryIds.map(cat => (
-            {
-              category: {
-                connect: {id: cat}
-              }
-            }
-          ))
+          create: data.categoryIds.map((cat) => ({
+            category: {
+              connect: { id: cat },
+            },
+          })),
         },
         images: {
-          create: data.imageUrl.map(url => ({
-            url
+          create: data.imageUrl.map((url) => ({
+            url,
           })),
         },
       },
@@ -84,7 +78,7 @@ export class ListingRepository implements IListingRepository {
         categories: {
           include: {
             category: true,
-          }
+          },
         },
       },
     });

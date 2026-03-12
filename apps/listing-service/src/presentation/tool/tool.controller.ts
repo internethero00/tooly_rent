@@ -1,7 +1,12 @@
 import { Controller, Logger } from '@nestjs/common';
 import { ToolService } from './tool.service';
 import { Message, RMQMessage, RMQRoute, RMQValidate } from 'nestjs-rmq';
-import { createTool, getToolById, updateToolById } from '@tooly-rent/contracts';
+import {
+  createTool,
+  getAllTools,
+  getToolById,
+  updateToolById,
+} from '@tooly-rent/contracts';
 
 @Controller()
 export class ToolController {
@@ -61,18 +66,37 @@ export class ToolController {
   }
 
   @RMQRoute(getToolById.topic)
-  async getToolById({toolId}: getToolById.Request, @RMQMessage msg: Message) {
+  async getToolById({ toolId }: getToolById.Request, @RMQMessage msg: Message) {
     const requestId = msg.properties.headers?.requestId || 'unknown';
     this.logger.log(`[${requestId}][Tool Service] Getting tool request`);
     try {
-      const result = await this.toolyService.getToolById(toolId)
+      const result = await this.toolyService.getToolById(toolId);
       this.logger.log(
         `[${requestId}][Tool Service] Tool getting: ${result.id}`,
       );
-      return result
+      return result;
+    } catch (error) {
+      this.logger.error(
+        `[${requestId}][Tool Service] Tool getting id ${toolId} failed`,
+      );
+      throw error;
     }
-    catch (error) {
-      this.logger.error(`[${requestId}][Tool Service] Tool getting id ${toolId} failed`);
+  }
+
+  @RMQRoute(getAllTools.topic)
+  async getAllTools(dto: getAllTools.Request, @RMQMessage msg: Message) {
+    const requestId = msg.properties.headers?.requestId || 'unknown';
+    this.logger.log(`[${requestId}][Tool Service] Getting all tools request`);
+    try {
+      const result = await this.toolyService.getAllTools(dto);
+      this.logger.log(
+        `[${requestId}][Tool Service] Getting all tools`,
+      );
+      return result;
+    } catch (error) {
+      this.logger.error(
+        `[${requestId}][Tool Service] Getting all tools failed`,
+      );
       throw error;
     }
   }
