@@ -15,12 +15,12 @@ export class ListingRepository implements IListingRepository {
     });
     return tool ? this.mapToEntity(tool) : null;
   }
-  async deleteToolById(id: string): Promise<ListingEntity> {
+  async deleteToolById(id: string): Promise<string> {
     const deleted = await this.prismaService.tool.delete({
       where: { id },
       include: { images: true, categories: true },
     });
-    return this.mapToEntity(deleted);
+    return deleted.id;
   }
   async updateToolById(id: string, data: ToolData): Promise<ListingEntity> {
     const updated = await this.prismaService.tool.update({

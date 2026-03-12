@@ -26,7 +26,7 @@ export class ToolService {
     return tool;
   }
 
-  async deleteToolById(id: string): Promise<ListingEntity> {
+  async deleteToolById(id: string): Promise<string> {
     try {
       return await this.listingRepository.deleteToolById(id);
     } catch {

@@ -6,6 +6,7 @@ import {
   getAllTools,
   getToolById,
   updateToolById,
+  deleteToolById
 } from '@tooly-rent/contracts';
 
 @Controller()
@@ -98,6 +99,30 @@ export class ToolController {
         `[${requestId}][Tool Service] Getting all tools failed`,
       );
       throw error;
+    }
+  }
+
+  @RMQRoute(deleteToolById.topic)
+  @RMQValidate()
+  async deleteToolById(dto: deleteToolById.Request, @RMQMessage msg: Message) {
+    const requestId = msg.properties.headers?.requestId || 'unknown';
+    this.logger.log(`[${requestId}][Tool Service] Deleting tool id=${dto.toolId} request`);
+    try {
+      const deletedId = await this.toolyService.deleteToolById(dto.toolId);
+      this.logger.log(
+        `[${requestId}][Tool Service] Deleting tool id=${dto.toolId}`,
+      );
+      return {
+        success: true,
+        deletedId,
+      };
+    } catch {
+      this.logger.error(
+        `[${requestId}][Tool Service] Deleting tool id=${dto.toolId} failed`,
+      );
+      return {
+        success: false
+      }
     }
   }
 }

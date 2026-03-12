@@ -16,3 +16,4 @@ export * from './lib/tool/tool.create.tool';
 export * from './lib/tool/tool.update-tool-by-id'
 export * from './lib/tool/tool.get-tool-by-id'
 export * from './lib/tool/tool.get-all-tools'
+export * from './lib/tool/tool.delete.tool'
