@@ -43,6 +43,18 @@ export class ToolService {
   }
 
   async createTool(data: ToolData): Promise<ListingEntity> {
+    for (const category of data.categoryIds) {
+      const exists = await this.prismaService.category.findUnique({
+        where: { id: category },
+        select: { id: true },
+      });
+
+      if (!exists) {
+        throw new NotFoundException(
+          `Category with id ${category} not found`,
+        );
+      }
+    }
     return await this.listingRepository.createTool(data);
   }
 
