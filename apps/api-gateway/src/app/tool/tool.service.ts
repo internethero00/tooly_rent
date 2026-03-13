@@ -9,8 +9,8 @@ import {
   updateToolById,
   getToolById,
   getAllTools,
+  deleteToolById,
 } from '@tooly-rent/contracts';
-import { deleteToolById } from '../../../../../libs/contracts/src/lib/tool/tool.delete.tool';
 
 
 @Injectable()
