@@ -1,4 +1,12 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: tooly_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
   tooly-auth-db:
     image: postgres:16
     container_name: tooly-auth-db
@@ -48,3 +56,4 @@ volumes:
   tooly_user_pg:
   tooly_listing_pg:
   rabbitmq_data:
+  redis_data:

@@ -12,6 +12,8 @@ import {
 } from '@tooly-rent/contracts';
 import { Prisma } from '@generated/prisma';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class ToolService {
@@ -19,16 +21,30 @@ export class ToolService {
     @Inject(LISTING_REPOSITORY)
     private readonly listingRepository: ListingRepository,
     private readonly prismaService: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
   async getToolById(id: string): Promise<ListingEntity | null> {
+    const cacheKey = `tool:${id}`;
+    const cached = await this.cacheManager.get<ListingEntity>(cacheKey);
+
+    if (cached) {
+      console.log(`✅ Cache HIT for tool ${id}`);
+      return cached;
+    }
+
+    console.log(`❌ Cache MISS for tool ${id}`);
+
     const tool = await this.listingRepository.getToolById(id);
     if (!tool) throw new NotFoundException(`Tool with id ${id} not found`);
+    await this.cacheManager.set(cacheKey, tool, 300000);
     return tool;
   }
 
   async deleteToolById(id: string): Promise<string> {
     try {
-      return await this.listingRepository.deleteToolById(id);
+      const tool = await this.listingRepository.deleteToolById(id);
+      await this.cacheManager.del(`tool:${id}`);
+      return tool;
     } catch {
       throw new NotFoundException(`Tool with id ${id} not found`);
     }
@@ -36,7 +52,9 @@ export class ToolService {
 
   async updateToolById(id: string, data: ToolData): Promise<ListingEntity> {
     try {
-      return await this.listingRepository.updateToolById(id, data);
+      const tool = await this.listingRepository.updateToolById(id, data);
+      await this.cacheManager.del(`tool:${id}`);
+      return tool;
     } catch {
       throw new NotFoundException(`Tool with id ${id} not found`);
     }
@@ -50,9 +68,7 @@ export class ToolService {
       });
 
       if (!exists) {
-        throw new NotFoundException(
-          `Category with id ${category} not found`,
-        );
+        throw new NotFoundException(`Category with id ${category} not found`);
       }
     }
     return await this.listingRepository.createTool(data);
