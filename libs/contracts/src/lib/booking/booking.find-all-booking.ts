@@ -1,7 +1,7 @@
 import {
-  IsDate,
   IsEnum,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
   Max,
@@ -30,27 +30,13 @@ export namespace findAllBookings {
   }
 
   export class Request {
+    @IsString()
+    @IsNotEmpty()
+    userId?: string; // ✅ Из JWT (для фильтрации)
+
     @IsOptional()
     @IsEnum(BookingStatus)
     status?: BookingStatus;
-
-    @IsOptional()
-    @IsString()
-    toolId?: string;
-
-    @IsOptional()
-    @IsString()
-    renterId?: string;
-
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
-    startDateFrom?: Date;
-
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
-    startDateTo?: Date;
 
     @IsOptional()
     @IsInt()
@@ -71,8 +57,6 @@ export interface IBooking {
   toolId: string;
   toolTitle: string;
   toolImage?: string;
-  renterId: string;
-  renterName?: string;
   startDate: Date;
   endDate: Date;
   pricePerDay: number;
