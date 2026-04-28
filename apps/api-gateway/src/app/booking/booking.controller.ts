@@ -19,7 +19,7 @@ import { UserRole } from '../decorators/roles.decorator';
 import { Request } from 'express';
 import { LoggerService } from '@tooly-rent/common';
 import { AuthenticatedRequest } from '../types/authenticatedRequest.type';
-import { AccountDeleteUser } from '@tooly-rent/contracts';
+import { AccountDeleteUser, findAllBookings } from '@tooly-rent/contracts';
 
 @Controller('booking')
 export class BookingController {
@@ -35,23 +35,24 @@ export class BookingController {
   @Authorization(UserRole.USER)
   @AuthorizeSelfOrAdmin()
   @Get('my')
-  findAll(@Req() req: AuthenticatedRequest) {
+  findAll(@Body() dto: findAllBookingsDto, @Req() req: AuthenticatedRequest) {
     const requestId = req['requestId'] as string;
     const timestamp = new Date().toISOString();
     const userId = req.user.sub
     this.logger.log(`Find All bookings ${userId}`, requestId);
-    let result: .Response;
+    let result: findAllBookings.Response;
     try {
       result = await this.bookingService.findAll(
         { userId },
-        requestId,
-        timestamp,
       );
-      this.logger.log(`Deleting user with id successful: ${userId}`, requestId);
+      this.logger.log(
+        `Find All bookings with id ${userId} successful`,
+        requestId,
+      );
       return result;
     } catch (e) {
       this.logger.error(
-        `Deleting user with id: ${e.message}`,
+        `Find All bookings with id ${userId} failed`,
         e.stack,
         requestId,
       );
