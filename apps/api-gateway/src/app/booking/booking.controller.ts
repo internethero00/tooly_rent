@@ -41,6 +41,7 @@ export class BookingController {
     const userId = req.user.sub
     this.logger.log(`Find All bookings ${userId}`, requestId);
     let result: findAllBookings.Response;
+    this.logger.log(`Find All bookings from MAIN ${userId}`, requestId);
     try {
       result = await this.bookingService.findAll(
         { userId },
