@@ -9,7 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
-
+import { BookingModule } from './booking/booking.module';
 
 @Module({
   imports: [
@@ -17,13 +17,12 @@ import { UserService } from './user/user.service';
       isGlobal: true,
       envFilePath: 'envs/.api-gateway.env',
     }),
-    RMQModule.forRootAsync(
-      getRMQConfig()
-    ),
+    RMQModule.forRootAsync(getRMQConfig()),
     JwtModule.registerAsync(getJWTConfig()),
     PassportModule,
     AuthModule,
-    UserModule
+    UserModule,
+    BookingModule,
   ],
   controllers: [UserController],
   providers: [UserService],
