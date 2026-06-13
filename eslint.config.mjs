@@ -5,7 +5,9 @@ export default [
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist', '**/out-tsc'],
+    // `**/generated` excludes generated Prisma clients — generated code must
+    // not be linted (the prisma-client-js output trips many TS-eslint rules).
+    ignores: ['**/dist', '**/out-tsc', '**/generated'],
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
