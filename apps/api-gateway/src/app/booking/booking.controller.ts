@@ -11,15 +11,11 @@ import {
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from '../dto/create-booking.dto';
 import { UpdateBookingDto } from '../dto/update-booking.dto';
-import {
-  Authorization,
-  AuthorizeSelfOrAdmin,
-} from '../decorators/auth.decorator';
+import { Authorization } from '../decorators/auth.decorator';
 import { UserRole } from '../decorators/roles.decorator';
-import { Request } from 'express';
 import { LoggerService } from '@tooly-rent/common';
 import { AuthenticatedRequest } from '../types/authenticatedRequest.type';
-import { AccountDeleteUser, findAllBookings } from '@tooly-rent/contracts';
+import { findAllBookings } from '@tooly-rent/contracts';
 
 @Controller('booking')
 export class BookingController {
@@ -33,18 +29,17 @@ export class BookingController {
   }
 
   @Authorization(UserRole.USER)
-  @AuthorizeSelfOrAdmin()
   @Get('my')
-  findAll(@Body() dto: findAllBookingsDto, @Req() req: AuthenticatedRequest) {
+  async findAll(@Req() req: AuthenticatedRequest) {
     const requestId = req['requestId'] as string;
     const timestamp = new Date().toISOString();
-    const userId = req.user.sub
+    const userId = req.user.sub;
     this.logger.log(`Find All bookings ${userId}`, requestId);
-    let result: findAllBookings.Response;
-    this.logger.log(`Find All bookings from MAIN ${userId}`, requestId);
     try {
-      result = await this.bookingService.findAll(
+      const result = await this.bookingService.findAll(
         { userId },
+        requestId,
+        timestamp,
       );
       this.logger.log(
         `Find All bookings with id ${userId} successful`,
@@ -59,7 +54,6 @@ export class BookingController {
       );
       throw e;
     }
-
   }
 
   @Get(':id')
