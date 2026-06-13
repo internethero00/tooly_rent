@@ -51,9 +51,69 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: tooly_otel_collector
+    command: ["--config=/etc/otel-collector.yaml"]
+    volumes:
+      - ./observability/otel-collector.yaml:/etc/otel-collector.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP (services push here)
+    depends_on:
+      - tempo
+      - loki
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tooly_tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo_data:/var/tempo
+    ports:
+      - "3200:3200"   # Tempo query API (Grafana reads this)
+  loki:
+    image: grafana/loki:latest
+    container_name: tooly_loki
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tooly_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    extra_hosts:
+      # Lets the container scrape services running on the host (Linux parity;
+      # on Docker Desktop host.docker.internal already resolves).
+      - "host.docker.internal:host-gateway"
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tooly_grafana
+    ports:
+      - "3001:3000"
+    environment:
+      # Anonymous admin access for local dev — no login wall.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
 volumes:
   tooly_auth_pg:
   tooly_user_pg:
   tooly_listing_pg:
   rabbitmq_data:
   redis_data:
+  prometheus_data:
+  grafana_data:
+  tempo_data:
+  loki_data:

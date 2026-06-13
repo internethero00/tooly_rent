@@ -33,6 +33,17 @@ jobs:
 
       - run: npm ci
 
+      # Prisma clients are generated code (gitignored), so they must be created
+      # in CI before any service that imports @generated/prisma is built.
+      # A dummy DATABASE_URL satisfies prisma.config.ts — generate never connects.
+      - name: Generate Prisma clients
+        run: |
+          (cd apps/auth-service && npx prisma generate)
+          (cd apps/user-service && npx prisma generate)
+          (cd apps/listing-service && npx prisma generate)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/db
+
       # Prepend any command with "nx record --" to record its logs to Nx Cloud
       # - run: npx nx record -- echo Hello World
       - run: npx nx run-many -t lint test build

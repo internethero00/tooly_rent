@@ -81,7 +81,6 @@ export class AuthController {
     const requestId = msg.properties.headers?.requestId || 'unknown';
     this.logger.log(`[${requestId}][Auth Service] Refresh request for: ${requestId}`);
     try {
-      console.log(dto.refresh_token);
       const tokens = await this.authService.verifyToken(dto.refresh_token);
       this.logger.log(`[${requestId}][Auth Service] Refresh successful`);
       return tokens;

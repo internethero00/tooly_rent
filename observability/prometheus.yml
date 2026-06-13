@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Services run on the host (via `nx serve`), Prometheus runs in a container,
+# so it reaches them through `host.docker.internal`. Each service exposes its
+# OpenTelemetry Prometheus endpoint on its own port (see each app's tracing.ts).
+scrape_configs:
+  - job_name: api-gateway
+    static_configs:
+      - targets: ['host.docker.internal:9464']
+        labels:
+          service: tooly_rent-api
+
+  - job_name: auth-service
+    static_configs:
+      - targets: ['host.docker.internal:9465']
+        labels:
+          service: tooly_rent-auth
+
+  - job_name: user-service
+    static_configs:
+      - targets: ['host.docker.internal:9466']
+        labels:
+          service: tooly_rent-user
+
+  - job_name: listing-service
+    static_configs:
+      - targets: ['host.docker.internal:9467']
+        labels:
+          service: tooly_rent-listing

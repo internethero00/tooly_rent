@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { RMQModule } from 'nestjs-rmq';
-import { getRMQConfig } from './configs/rmq.config';
+import { getRMQConfig } from '@tooly-rent/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { getJWTConfig } from './configs/jwt.config';
@@ -9,7 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
-
+import { BookingModule } from './booking/booking.module';
 
 @Module({
   imports: [
@@ -17,13 +17,12 @@ import { UserService } from './user/user.service';
       isGlobal: true,
       envFilePath: 'envs/.api-gateway.env',
     }),
-    RMQModule.forRootAsync(
-      getRMQConfig()
-    ),
+    RMQModule.forRootAsync(getRMQConfig('tooly_rent-api')),
     JwtModule.registerAsync(getJWTConfig()),
     PassportModule,
     AuthModule,
-    UserModule
+    UserModule,
+    BookingModule,
   ],
   controllers: [UserController],
   providers: [UserService],

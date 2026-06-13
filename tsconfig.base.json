@@ -16,7 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@tooly-rent/contracts": ["libs/contracts/src/index.ts"],
-      "@tooly-rent/common": ["libs/common/src/index.ts"]
+      "@tooly-rent/common": ["libs/common/src/index.ts"],
+      "@tooly-rent/observability": ["libs/common/src/observability/tracing.ts"]
     },
     "typeRoots": ["./node_modules/@types"]
   },
