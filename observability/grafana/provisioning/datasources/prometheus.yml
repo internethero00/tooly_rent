@@ -1,0 +1,40 @@
+apiVersion: 1
+
+# Auto-provisions all three signals so Grafana is a single pane of glass the
+# moment the stack comes up — no manual setup in the UI.
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: true
+    jsonData:
+      # From a trace span, jump to the matching logs in Loki by traceId.
+      tracesToLogsV2:
+        datasourceUid: loki
+        filterByTraceID: true
+        filterBySpanID: false
+
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      # From a log line, extract traceId and offer a jump into the Tempo trace.
+      derivedFields:
+        - name: traceId
+          matcherType: label
+          matcherRegex: traceId
+          datasourceUid: tempo
+          url: '$${__value.raw}'

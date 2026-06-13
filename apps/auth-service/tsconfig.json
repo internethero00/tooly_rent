@@ -16,7 +16,8 @@
     "paths": {
       "@generated/prisma": ["src/generated/prisma"],
       "@tooly-rent/contracts": ["../../libs/contracts/src/index.ts"],
-      "@tooly-rent/common": ["../../libs/common/src/index.ts"]
+      "@tooly-rent/common": ["../../libs/common/src/index.ts"],
+      "@tooly-rent/observability": ["../../libs/common/src/observability/tracing.ts"]
     }
   }
 }

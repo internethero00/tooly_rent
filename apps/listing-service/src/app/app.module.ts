@@ -4,7 +4,7 @@ import { CategoryModule } from '../presentation/category/category.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { RMQModule } from 'nestjs-rmq';
-import { getRMQConfig } from '../config/rmq.config';
+import { getRMQConfig } from '@tooly-rent/common';
 import { PrismaModule } from '../infrastructure/prisma/prisma.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
@@ -31,7 +31,7 @@ import { redisStore } from 'cache-manager-redis-store';
         }),
       }),
     }),
-    RMQModule.forRootAsync(getRMQConfig()),
+    RMQModule.forRootAsync(getRMQConfig('tooly_rent-listing')),
     ToolModule,
     CategoryModule,
   ],
