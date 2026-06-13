@@ -1,15 +1,28 @@
 import { Injectable } from '@nestjs/common';
+import { RMQService } from 'nestjs-rmq';
 import { CreateBookingDto } from '../dto/create-booking.dto';
 import { UpdateBookingDto } from '../dto/update-booking.dto';
+import { findAllBookings } from '@tooly-rent/contracts';
 
 @Injectable()
 export class BookingService {
+  constructor(private readonly rmqService: RMQService) {}
+
   create(createBookingDto: CreateBookingDto) {
     return 'This action adds a new booking';
   }
 
-  findAll() {
-    return `This action returns all booking`;
+  async findAll(
+    dto: findAllBookings.Request,
+    requestId?: string,
+    timestamp?: string,
+  ): Promise<findAllBookings.Response> {
+    return this.rmqService.send<
+      findAllBookings.Request,
+      findAllBookings.Response
+    >(findAllBookings.topic, dto, {
+      headers: { requestId, timestamp, service: 'api-gateway' },
+    });
   }
 
   findOne(id: number) {
