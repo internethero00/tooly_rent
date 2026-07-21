@@ -1,82 +1,184 @@
 # ToolyRent
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+**ToolyRent** — платформа аренды строительных инструментов. Бэкенд построен как набор
+микросервисов на **NestJS** внутри **Nx-монорепозитория**. Сервисы общаются через
+**RabbitMQ** (`nestjs-rmq`), каждый владеет собственной PostgreSQL-базой
+(database-per-service).
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## Архитектура
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+Единственная HTTP-точка входа — **api-gateway**. Он транслирует REST → RMQ, держит
+JWT-гарды, cookie и загрузку файлов в S3. Остальные сервисы запускаются без
+`app.listen()` и работают исключительно как RMQ-консьюмеры.
 
-## Finish your CI setup
-
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/80jud281qX)
-
-
-## Run tasks
-
-To run the dev server for your app, use:
-
-```sh
-npx nx serve tooly_rent
+```
+        HTTP (REST, :3000/api)
+              │
+        ┌─────▼──────┐
+        │ api-gateway│
+        └─────┬──────┘
+              │  RabbitMQ (RPC + события)
+   ┌──────────┼───────────────┐
+   ▼          ▼               ▼
+auth-service  user-service  listing-service
+(Postgres)    (Postgres)    (Postgres + Redis)
 ```
 
-To create a production bundle:
+### Сервисы (`apps/`)
 
-```sh
-npx nx build tooly_rent
+| Сервис | Назначение | БД (порт хоста) | Транспорт |
+|---|---|---|---|
+| **api-gateway** | Единственная HTTP-точка входа. HTTP → RMQ, JWT-гарды, cookie, загрузка в S3. | — | HTTP `:3000` (`/api`) |
+| **auth-service** | Учётки и креды, выпуск/проверка JWT, сага удаления аккаунта. | `tooly_rent_auth` (5433) | только RMQ |
+| **user-service** | Профили пользователей (имя, телефон, аватар). | `tooly_rent_user` (5434) | только RMQ |
+| **listing-service** | Инструменты, категории, изображения. Кэш в Redis. | `tooly_rent_listing` (5435) | только RMQ |
+
+**Запланировано:** booking-сервис, сервис уведомлений, сервис оплаты. Booking сейчас
+существует только как заглушка-модуль в api-gateway (ветка `booking_featcher`).
+
+### Библиотеки (`libs/`)
+
+- **`@tooly-rent/contracts`** — единый источник правды для межсервисного общения.
+  Каждый контракт это TS-`namespace` с `topic`, `Request`/`Response` (декораторы
+  `class-validator`) и событиями. Формат запроса/ответа меняется **только** здесь.
+- **`@tooly-rent/common`** — общий рантайм: `LoggerService`
+  (`[timestamp][requestId][context] message`) и `RequestIdInterceptor`
+  (сквозной `x-request-id`).
+
+### Межсервисное взаимодействие
+
+RPC-вызов из gateway (ждём ответ):
+
+```ts
+this.rmqService.send<Req, Res>(SomeContract.topic, dto, {
+  headers: { requestId, timestamp, service: 'api-gateway' },
+});
 ```
 
-To see all available targets to run for a project, run:
+Хендлер на стороне сервиса:
 
-```sh
-npx nx show project tooly_rent
+```ts
+@RMQRoute(SomeContract.topic)
+@RMQValidate()
+async handler(dto: SomeContract.Request, @RMQMessage msg: Message) {
+  const requestId = msg.properties.headers?.requestId || 'unknown';
+  // ...
+}
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+`send` — RPC «запрос-ответ», `notify` — fire-and-forget событие (используется в сагах,
+напр. хореография удаления аккаунта). `requestId` всегда прокидывается через
+RMQ-заголовки и логируется на каждом шаге.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Observability
 
-## Add new projects
+Заложен полноценный observability-слой: сквозные трейсы, структурированные логи и
+метрики. OpenTelemetry-инструментация в сервисах пушит в **OTel Collector**, откуда
+данные расходятся в **Tempo** (трейсы), **Loki** (логи) и **Prometheus** (метрики), а
+визуализируются в **Grafana**.
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+## Требования
 
-Use the plugin's generator to create new projects.
+- **Node.js** 20+
+- **Docker** + Docker Compose (RabbitMQ, 3× Postgres, Redis, стек observability)
 
-To generate a new application, use:
+## Быстрый старт
 
 ```sh
-npx nx g @nx/nest:controllers demo
+# 1. Зависимости
+npm install
+
+# 2. Инфраструктура (RabbitMQ, Postgres ×3, Redis, OTel/Tempo/Loki/Prometheus/Grafana)
+docker compose up -d
+
+# 3. Env-файлы — создать локально в envs/ (в .gitignore, см. ниже)
+#    .api-gateway.env, .auth-service.env, .user-service.env, .listing-service.env
+
+# 4. Prisma-клиенты и миграции (для каждого сервиса с БД)
+cd apps/auth-service && npx prisma migrate dev && npx prisma generate
+# аналогично для user-service и listing-service
+
+# 5. Запуск сервисов (каждый в своём терминале)
+npx nx serve api-gateway
+npx nx serve auth-service
+npx nx serve user-service
+npx nx serve listing-service
 ```
 
-To generate a new library, use:
+API доступен на `http://localhost:3000/api`.
+
+## Конфигурация
+
+Env-файлы лежат в `envs/` (в `.gitignore`, в репозитории их нет — создавай локально).
+Каждый сервис читает свой файл.
+
+Ключевые переменные:
+
+- **Все:** `AMQP_EXCHANGE`, `AMQP_LOGIN`, `AMQP_PASSWORD`, `AMQP_HOSTNAME`;
+  консьюмеры — ещё `AMQP_QUEUE`.
+- **Сервисы с БД:** `DATABASE_URL`.
+- **auth:** `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_EXPIRATION`,
+  `JWT_REFRESH_EXPIRATION`.
+- **gateway:** `JWT_ACCESS_SECRET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`,
+  `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`, `PORT` (по умолч. 3000).
+- **listing:** `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`.
+
+## Команды
 
 ```sh
-npx nx g @nx/node:lib mylib
+# Dev-режим (watch)
+npx nx serve <project>              # api-gateway | auth-service | user-service | listing-service
+npm run debug:api-gateway           # serve с inspector на :9229
+
+# Сборка / линт / тесты
+npx nx build <project>
+npx nx lint <project>
+npx nx test <project>               # Jest
+npx nx run-many -t lint test build  # как в CI
+
+# Prisma (из каталога сервиса)
+npx prisma migrate dev
+npx prisma generate
+
+# Граф зависимостей
+npx nx graph
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+## Порты и дашборды (локально)
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+| Сервис | URL / порт |
+|---|---|
+| API Gateway | http://localhost:3000/api |
+| RabbitMQ Management | http://localhost:15672 (guest / guest) |
+| Grafana | http://localhost:3001 (анонимный admin) |
+| Prometheus | http://localhost:9090 |
+| Tempo (query API) | http://localhost:3200 |
+| Loki | http://localhost:3100 |
+| Postgres (auth / user / listing) | 5433 / 5434 / 5435 |
+| Redis | 6379 |
 
+## Структура сервисов
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Downstream-сервисы (auth, user, listing) организованы по слоистой/гексагональной схеме:
 
-## Install Nx Console
+```
+src/
+  domain/          # entities + интерфейсы репозиториев (порты)
+  infrastructure/  # prisma.service, реализации репозиториев (адаптеры)
+  presentation/    # RMQ-контроллеры (@RMQRoute) + модули/сервисы
+  config/          # rmq.config.ts и пр.
+```
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+api-gateway организован по feature-модулям (`auth/`, `user/`, `tool/`, `category/`,
+`booking/`); каждый — тонкая HTTP-обёртка над `RMQService.send`.
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Стек
 
-## Useful links
+- **NestJS 11**, **TypeScript ~5.9**
+- **Nx 22** + webpack, тесты — **Jest**
+- Транспорт — **RabbitMQ** (`nestjs-rmq`)
+- **Prisma 7** + PostgreSQL 16 (database-per-service)
+- **Redis** (кэш listing-service)
+- **OpenTelemetry** + Tempo / Loki / Prometheus / Grafana
+- **AWS S3** (загрузка изображений)
 
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
